@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#0a0f1a"/>
+<title>أسطول الخال</title>
+<link rel="stylesheet" href="style.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- Lock Screen -->
+<div class="lock-screen" id="lock-screen">
+  <div class="lock-box">
+    <div class="lock-logo">🚛</div>
+    <div class="lock-title">أسطول الخال</div>
+    <div class="lock-sub">إدارة الحاج عبدالغني وأولاده</div>
+    <div class="lock-icon">🔒</div>
+    <div class="lock-hint">أدخل كلمة السر للدخول</div>
+    <input type="password" id="lock-input" class="lock-input" placeholder="كلمة السر..." onkeydown="if(event.key==='Enter')checkLock()"/>
+    <button class="lock-btn" onclick="checkLock()">دخول ←</button>
+    <div class="lock-error hidden" id="lock-error">❌ كلمة السر غلط</div>
+  </div>
+</div>
+
+<div id="alert-bar" class="alert-bar hidden"><span id="alert-bar-text"></span><button onclick="closeAlertBar()">✕</button></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🚛</div>
+    <div class="logo-text"><span class="logo-title">أسطول الخال</span><span class="logo-sub">إدارة الحاج عبدالغني وأولاده</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard"><span class="nav-icon">📊</span><span>لوحة التحكم</span></button>
+    <button class="nav-item" onclick="showPage('profile')" data-page="profile"><span class="nav-icon">👤</span><span>الملف الشخصي</span></button>
+    <button class="nav-item" onclick="showPage('vehicles')" data-page="vehicles"><span class="nav-icon">🚗</span><span>العربيات والبراد</span></button>
+    <button class="nav-item" onclick="showPage('drivers')" data-page="drivers"><span class="nav-icon">👨‍✈️</span><span>السواقين</span></button>
+    <button class="nav-item" onclick="showPage('accounts')" data-page="accounts"><span class="nav-icon">💰</span><span>الحسابات</span></button>
+    <button class="nav-item" onclick="showPage('maintenance')" data-page="maintenance"><span class="nav-icon">🔧</span><span>الصيانة</span></button>
+    <button class="nav-item" onclick="showPage('inspection')" data-page="inspection"><span class="nav-icon">🔍</span><span>الفحص</span></button>
+    <button class="nav-item" onclick="showPage('license')" data-page="license"><span class="nav-icon">📋</span><span>الترخيص</span></button>
+    <button class="nav-item" onclick="showPage('insurance')" data-page="insurance"><span class="nav-icon">🛡️</span><span>التأمين</span></button>
+    <button class="nav-item" onclick="showPage('notifications')" data-page="notifications"><span class="nav-icon">🔔</span><span>التنبيهات</span><span class="badge" id="notif-badge">0</span></button>
+  </nav>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="lockApp()">🔒 قفل الموقع</button></div>
+</aside>
+
+<main class="main" id="main">
+  <header class="topbar">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-title" id="page-title">لوحة التحكم</div>
+    <div class="topbar-right">
+      <div class="notif-bell" onclick="showPage('notifications')">🔔<span class="bell-badge" id="bell-badge">0</span></div>
+      <div class="topbar-avatar" onclick="showPage('profile')">
+        <img id="topbar-photo" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;"/>
+        <span id="topbar-initials">م</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-wrapper">
+
+    <!-- Dashboard -->
+    <section class="page active" id="page-dashboard">
+      <div class="section-header"><h1>لوحة التحكم</h1></div>
+      <div class="stats-grid">
+        <div class="stat-card accent-blue"><div class="stat-icon">🚗</div><div class="stat-info"><div class="stat-num" id="stat-vehicles">0</div><div class="stat-label">العربيات</div></div></div>
+        <div class="stat-card accent-purple"><div class="stat-icon">❄️</div><div class="stat-info"><div class="stat-num" id="stat-trailers">0</div><div class="stat-label">العربيات بالبراد</div></div></div>
+        <div class="stat-card accent-green"><div class="stat-icon">👨‍✈️</div><div class="stat-info"><div class="stat-num" id="stat-drivers">0</div><div class="stat-label">السواقين</div></div></div>
+        <div class="stat-card accent-red"><div class="stat-icon">⚠️</div><div class="stat-info"><div class="stat-num" id="stat-expiring">0</div><div class="stat-label">تنتهي قريباً</div></div></div>
+      </div>
+      <div class="dashboard-grid">
+        <div class="card"><div class="card-header"><h3>⛔ تنبيهات عاجلة</h3></div><div class="card-body" id="urgent-alerts"><div class="empty-state">لا توجد تنبيهات</div></div></div>
+        <div class="card"><div class="card-header"><h3>⚠️ تنتهي قريباً</h3></div><div class="card-body" id="upcoming-events"><div class="empty-state">لا توجد مواعيد</div></div></div>
+      </div>
+    </section>
+
+    <!-- Profile -->
+    <section class="page" id="page-profile">
+      <div class="section-header"><h1>الملف الشخصي</h1></div>
+      <div class="profile-card">
+        <div class="profile-photo-wrap">
+          <div class="profile-avatar-circle">
+            <img id="profile-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;"/>
+            <span id="profile-initials-big">م</span>
+          </div>
+          <label class="photo-upload-btn" for="photo-upload">📷 رفع صورة</label>
+          <input type="file" id="photo-upload" accept="image/*" onchange="uploadPhoto(event)" style="display:none"/>
+          <div class="social-links">
+            <a href="https://wa.me/qr/L7DH3A3L4AKAI1" target="_blank" class="social-btn whatsapp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+            <a href="https://www.instagram.com/_mohamed__abdelghany" target="_blank" class="social-btn instagram" title="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+            <a href="https://www.facebook.com/share/19ySQ61mA8/" target="_blank" class="social-btn facebook" title="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+            <a href="https://x.com/mohamedbigbos12" target="_blank" class="social-btn twitter" title="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+          </div>
+        </div>
+        <div class="profile-info">
+          <div class="profile-name-en">Eng. Mohamed Abdel Ghani</div>
+          <div class="profile-name-ar">المهندس / محمد عبدالغني</div>
+          <div class="profile-company">🚛 أسطول الخال — إدارة الحاج عبدالغني وأولاده</div>
+          <div class="profile-static-info">
+            <div class="static-info-item"><span class="static-icon">📞</span><span class="static-label">الهاتف</span><span class="static-val">01060073575</span></div>
+            <div class="static-info-item"><span class="static-icon">📧</span><span class="static-label">الإيميل</span><span class="static-val">mogamedbigboss247@gmail.com</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vehicles + Trailers -->
+    <section class="page" id="page-vehicles">
+      <div class="section-header"><h1>🚗 العربيات والبراد ❄️</h1><button class="btn-primary" onclick="openModal('modal-add-vehicle')">+ إضافة عربية</button></div>
+      <div class="search-bar"><input type="text" placeholder="🔍 ابحث..." oninput="filterTable('vehicles-table',this.value)"/></div>
+      <div class="table-wrapper">
+        <table class="data-table" id="vehicles-table">
+          <thead><tr><th>#</th><th>رقم اللوحة</th><th>النوع</th><th>السائق</th><th>رقم البراد</th><th>نوع البراد</th><th>ترخيص البراد</th><th>انتهاء ترخيص البراد</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+          <tbody id="vehicles-tbody"><tr><td colspan="10" class="empty-state">لا توجد عربيات</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Drivers -->
+    <section class="page" id="page-drivers">
+      <div class="section-header"><h1>السواقين</h1><button class="btn-primary" onclick="openModal('modal-add-driver')">+ إضافة سائق</button></div>
+      <div class="search-bar"><input type="text" placeholder="🔍 ابحث..." oninput="filterTable('drivers-table',this.value)"/></div>
+      <div class="table-wrapper">
+        <table class="data-table" id="drivers-table">
+          <thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>رقم الرخصة</th><th>انتهاء الرخصة</th><th>الجنسية</th><th>الحالة</th><th>ملاحظات</th><th>إجراءات</th></tr></thead>
+          <tbody id="drivers-tbody"><tr><td colspan="9" class="empty-state">لا يوجد سواقين</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Accounts -->
+    <section class="page" id="page-accounts">
+      <div class="section-header"><h1>💰 حساب النقلات</h1><button class="btn-primary" onclick="openModal('modal-add-trip')">+ إضافة نقلة</button></div>
+      <div class="acc-filter-bar">
+        <div class="acc-filter-group"><label>العربية</label><select id="acc-vehicle-id" onchange="renderAccounts()"><option value="">-- الكل --</option></select></div>
+        <div class="acc-filter-group"><label>الفترة</label><select id="acc-period" onchange="renderAccounts()"><option value="all">الكل</option><option value="month">هذا الشهر</option><option value="year">هذه السنة</option></select></div>
+      </div>
+      <div class="acc-summary-grid">
+        <div class="acc-sum-card c-green"><div class="acc-sum-icon">🚀</div><div class="acc-sum-label">طالع<br/>(مصر→السعودية)</div><div class="acc-sum-val" id="sum-up">0</div><div class="acc-sum-sub" id="cnt-up">0 نقلة</div></div>
+        <div class="acc-sum-card c-blue"><div class="acc-sum-icon">🔄</div><div class="acc-sum-label">نازل<br/>(السعودية→مصر)</div><div class="acc-sum-val" id="sum-down">0</div><div class="acc-sum-sub" id="cnt-down">0 نقلة</div></div>
+        <div class="acc-sum-card c-purple"><div class="acc-sum-icon">📦</div><div class="acc-sum-label">إجمالي الإيرادات<br/>(جنيه)</div><div class="acc-sum-val" id="sum-revenue">0</div></div>
+        <div class="acc-sum-card c-orange"><div class="acc-sum-icon">💸</div><div class="acc-sum-label">مصاريف مصري<br/>(جنيه)</div><div class="acc-sum-val" id="sum-exp-eg">0</div></div>
+        <div class="acc-sum-card c-red2"><div class="acc-sum-icon">💸</div><div class="acc-sum-label">مصاريف سعودي<br/>(ريال)</div><div class="acc-sum-val" id="sum-exp-sa">0</div></div>
+        <div class="acc-sum-card c-yellow"><div class="acc-sum-icon">🤝</div><div class="acc-sum-label">عهدة مصري<br/>(جنيه)</div><div class="acc-sum-val" id="sum-cus-eg">0</div></div>
+        <div class="acc-sum-card c-teal"><div class="acc-sum-icon">🤝</div><div class="acc-sum-label">عهدة سعودي<br/>(ريال)</div><div class="acc-sum-val" id="sum-cus-sa">0</div></div>
+        <div class="acc-sum-card c-darkgreen"><div class="acc-sum-icon">✅</div><div class="acc-sum-label">صافي مصري<br/>(جنيه)</div><div class="acc-sum-val" id="sum-net-eg">0</div></div>
+        <div class="acc-sum-card c-gold"><div class="acc-sum-icon">✅</div><div class="acc-sum-label">صافي سعودي<br/>(ريال)</div><div class="acc-sum-val" id="sum-net-sa">0</div></div>
+      </div>
+      <div class="table-wrapper" style="margin-top:18px">
+        <table class="data-table" id="accounts-table">
+          <thead><tr><th>#</th><th>التاريخ</th><th>الاتجاه</th><th>العربية</th><th>السائق</th><th>إيراد (م)</th><th>مصروف (م)</th><th>مصروف (س)</th><th>عهدة (م)</th><th>عهدة (س)</th><th>صافي (م)</th><th>صافي (س)</th><th>ملاحظات</th><th>حذف</th></tr></thead>
+          <tbody id="accounts-tbody"><tr><td colspan="14" class="empty-state">لا توجد نقلات</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Maintenance -->
+    <section class="page" id="page-maintenance">
+      <div class="section-header"><h1>الصيانة</h1><button class="btn-primary" onclick="openModal('modal-add-maintenance')">+ إضافة صيانة</button></div>
+      <div class="table-wrapper">
+        <table class="data-table" id="maintenance-table">
+          <thead><tr><th>#</th><th>النوع</th><th>العربية/البراد</th><th>أنواع الصيانة</th><th>التاريخ</th><th>القادمة</th><th>التكلفة</th><th>المركز</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+          <tbody id="maintenance-tbody"><tr><td colspan="10" class="empty-state">لا توجد سجلات</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Inspection -->
+    <section class="page" id="page-inspection">
+      <div class="section-header"><h1>الفحص الدوري</h1><button class="btn-primary" onclick="openModal('modal-add-inspection')">+ إضافة فحص</button></div>
+      <div class="table-wrapper">
+        <table class="data-table" id="inspection-table">
+          <thead><tr><th>#</th><th>العربية</th><th>تاريخ الفحص</th><th>تاريخ الانتهاء</th><th>الدولة</th><th>النتيجة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+          <tbody id="inspection-tbody"><tr><td colspan="8" class="empty-state">لا توجد سجلات</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- License -->
+    <section class="page" id="page-license">
+      <div class="section-header"><h1>الترخيص</h1><button class="btn-primary" onclick="openModal('modal-add-license')">+ إضافة ترخيص</button></div>
+      <div class="table-wrapper">
+        <table class="data-table" id="license-table">
+          <thead><tr><th>#</th><th>النوع</th><th>العربية/البراد</th><th>رقم الترخيص</th><th>تاريخ الإصدار</th><th>تاريخ الانتهاء</th><th>الدولة</th><th>الجهة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+          <tbody id="license-tbody"><tr><td colspan="10" class="empty-state">لا توجد تراخيص</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Insurance -->
+    <section class="page" id="page-insurance">
+      <div class="section-header"><h1>التأمين</h1><button class="btn-primary" onclick="openModal('modal-add-insurance')">+ إضافة تأمين</button></div>
+      <div class="table-wrapper">
+        <table class="data-table" id="insurance-table">
+          <thead><tr><th>#</th><th>العربية</th><th>رقم الوثيقة</th><th>شركة التأمين</th><th>البداية</th><th>الانتهاء</th><th>الدول</th><th>سعر الأردن</th><th>سعر السعودية</th><th>النوع</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+          <tbody id="insurance-tbody"><tr><td colspan="12" class="empty-state">لا توجد وثائق</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Notifications -->
+    <section class="page" id="page-notifications">
+      <div class="section-header"><h1>التنبيهات</h1><button class="btn-secondary" onclick="checkAllExpiry()">🔄 تحديث</button></div>
+      <div class="notif-filters">
+        <button class="filter-btn active" onclick="filterNotifs('all',this)">الكل</button>
+        <button class="filter-btn" onclick="filterNotifs('expired',this)">منتهي</button>
+        <button class="filter-btn" onclick="filterNotifs('soon',this)">قريباً</button>
+        <button class="filter-btn" onclick="filterNotifs('ok',this)">سليم</button>
+      </div>
+      <div id="notif-list" class="notif-list"><div class="empty-state">لا توجد تنبيهات</div></div>
+    </section>
+
+  </div>
+</main>
+
+<!-- MODALS -->
+
+<!-- إضافة عربية + براد -->
+<div class="modal-overlay" id="modal-add-vehicle">
+  <div class="modal modal-wide">
+    <div class="modal-header"><h2>🚗 إضافة عربية وبرادها</h2><button class="modal-close" onclick="closeModal('modal-add-vehicle')">✕</button></div>
+    <div class="modal-body">
+      <div class="modal-section-title">🚗 بيانات العربية</div>
+      <div class="form-grid">
+        <div class="form-group"><label>رقم اللوحة *</label><input type="text" id="v-plate" placeholder="أ ب ج 1234"/></div>
+        <div class="form-group"><label>نوع العربية *</label><input type="text" id="v-type" placeholder="تريلا، مقطورة..."/></div>
+        <div class="form-group"><label>الموديل</label><input type="text" id="v-model"/></div>
+        <div class="form-group"><label>السائق المعين</label><select id="v-driver"><option value="">-- بدون سائق --</option></select></div>
+        <div class="form-group"><label>الحالة</label><select id="v-status"><option value="نشطة">نشطة</option><option value="في الصيانة">في الصيانة</option><option value="متوقفة">متوقفة</option></select></div>
+      </div>
+      <div class="modal-section-title" style="margin-top:18px">❄️ بيانات البراد (اختياري)</div>
+      <div class="form-grid">
+        <div class="form-group"><label>رقم لوحة البراد</label><input type="text" id="v-trailer-num" placeholder="رقم البراد"/></div>
+        <div class="form-group"><label>نوع البراد</label><input type="text" id="v-trailer-type" placeholder="مثلجة، مبردة..."/></div>
+        <div class="form-group"><label>رقم ترخيص البراد</label><input type="text" id="v-trailer-lic" placeholder="رقم الترخيص"/></div>
+        <div class="form-group"><label>تاريخ انتهاء ترخيص البراد</label><input type="date" id="v-trailer-lic-exp"/></div>
+        <div class="form-group"><label>دولة ترخيص البراد</label><select id="v-trailer-lic-country"><option value="الأردن">الأردن</option><option value="السعودية">السعودية</option><option value="مصر">مصر</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-vehicle')">إلغاء</button><button class="btn-primary" onclick="addVehicle()">💾 حفظ</button></div>
+  </div>
+</div>
+
+<!-- تعديل عربية -->
+<div class="modal-overlay" id="modal-edit-vehicle">
+  <div class="modal modal-wide">
+    <div class="modal-header"><h2>✏️ تعديل العربية والبراد</h2><button class="modal-close" onclick="closeModal('modal-edit-vehicle')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ev-id"/>
+      <div class="modal-section-title">🚗 بيانات العربية</div>
+      <div class="form-grid">
+        <div class="form-group"><label>رقم اللوحة *</label><input type="text" id="ev-plate"/></div>
+        <div class="form-group"><label>نوع العربية *</label><input type="text" id="ev-type"/></div>
+        <div class="form-group"><label>الموديل</label><input type="text" id="ev-model"/></div>
+        <div class="form-group"><label>السائق المعين</label><select id="ev-driver"><option value="">-- بدون سائق --</option></select></div>
+        <div class="form-group"><label>الحالة</label><select id="ev-status"><option value="نشطة">نشطة</option><option value="في الصيانة">في الصيانة</option><option value="متوقفة">متوقفة</option></select></div>
+      </div>
+      <div class="modal-section-title" style="margin-top:18px">❄️ بيانات البراد</div>
+      <div class="form-grid">
+        <div class="form-group"><label>رقم لوحة البراد</label><input type="text" id="ev-trailer-num"/></div>
+        <div class="form-group"><label>نوع البراد</label><input type="text" id="ev-trailer-type"/></div>
+        <div class="form-group"><label>رقم ترخيص البراد</label><input type="text" id="ev-trailer-lic"/></div>
+        <div class="form-group"><label>تاريخ انتهاء ترخيص البراد</label><input type="date" id="ev-trailer-lic-exp"/></div>
+        <div class="form-group"><label>دولة ترخيص البراد</label><select id="ev-trailer-lic-country"><option value="الأردن">الأردن</option><option value="السعودية">السعودية</option><option value="مصر">مصر</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-vehicle')">إلغاء</button><button class="btn-primary" onclick="saveEditVehicle()">💾 حفظ التعديل</button></div>
+  </div>
+</div>
+
+<!-- سائق -->
+<div class="modal-overlay" id="modal-add-driver"><div class="modal"><div class="modal-header"><h2>👨‍✈️ إضافة سائق</h2><button class="modal-close" onclick="closeModal('modal-add-driver')">✕</button></div><div class="modal-body"><div class="form-grid"><div class="form-group"><label>الاسم *</label><input type="text" id="d-name"/></div><div class="form-group"><label>الهاتف *</label><input type="tel" id="d-phone"/></div><div class="form-group"><label>رقم الهوية</label><input type="text" id="d-idnum"/></div><div class="form-group"><label>الجنسية</label><select id="d-nationality"><option value="مصري">مصري</option><option value="أردني">أردني</option><option value="سعودي">سعودي</option><option value="سوري">سوري</option><option value="أخرى">أخرى</option></select></div><div class="form-group"><label>رقم الرخصة *</label><input type="text" id="d-license"/></div><div class="form-group"><label>انتهاء الرخصة *</label><input type="date" id="d-license-exp"/></div><div class="form-group"><label>الحالة</label><select id="d-status"><option value="نشط">نشط</option><option value="إجازة">إجازة</option><option value="موقوف">موقوف</option></select></div><div class="form-group"><label>ملاحظات</label><input type="text" id="d-notes"/></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-driver')">إلغاء</button><button class="btn-primary" onclick="addDriver()">💾 حفظ</button></div></div></div>
+<div class="modal-overlay" id="modal-edit-driver"><div class="modal"><div class="modal-header"><h2>✏️ تعديل بيانات السائق</h2><button class="modal-close" onclick="closeModal('modal-edit-driver')">✕</button></div><div class="modal-body"><input type="hidden" id="ed-id"/><div class="form-grid"><div class="form-group"><label>الاسم *</label><input type="text" id="ed-name"/></div><div class="form-group"><label>الهاتف *</label><input type="tel" id="ed-phone"/></div><div class="form-group"><label>رقم الهوية</label><input type="text" id="ed-idnum"/></div><div class="form-group"><label>الجنسية</label><select id="ed-nationality"><option value="مصري">مصري</option><option value="أردني">أردني</option><option value="سعودي">سعودي</option><option value="سوري">سوري</option><option value="أخرى">أخرى</option></select></div><div class="form-group"><label>رقم الرخصة *</label><input type="text" id="ed-license"/></div><div class="form-group"><label>انتهاء الرخصة *</label><input type="date" id="ed-license-exp"/></div><div class="form-group"><label>الحالة</label><select id="ed-status"><option value="نشط">نشط</option><option value="إجازة">إجازة</option><option value="موقوف">موقوف</option></select></div><div class="form-group"><label>ملاحظات</label><input type="text" id="ed-notes"/></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-driver')">إلغاء</button><button class="btn-primary" onclick="saveEditDriver()">💾 حفظ التعديل</button></div></div></div>
+
+<!-- نقلة -->
+<div class="modal-overlay" id="modal-add-trip">
+  <div class="modal modal-wide">
+    <div class="modal-header"><h2>🚛 إضافة نقلة</h2><button class="modal-close" onclick="closeModal('modal-add-trip')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>العربية *</label><select id="trip-vehicle" onchange="autoFillDriver()"></select></div>
+        <div class="form-group"><label>السائق</label><select id="trip-driver"></select></div>
+        <div class="form-group"><label>التاريخ *</label><input type="date" id="trip-date"/></div>
+        <div class="form-group"><label>الاتجاه *</label><select id="trip-dir"><option value="طالع">🚀 طالع (مصر → السعودية)</option><option value="نازل">🔄 نازل (السعودية → مصر)</option></select></div>
+        <div class="form-group"><label>💵 إيراد النقلة (جنيه) *</label><input type="number" id="trip-revenue" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>💸 مصروف مصري (جنيه)</label><input type="number" id="trip-exp-eg" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>💸 مصروف سعودي (ريال)</label><input type="number" id="trip-exp-sa" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>🤝 عهدة مصري (جنيه)</label><input type="number" id="trip-cus-eg" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>🤝 عهدة سعودي (ريال)</label><input type="number" id="trip-cus-sa" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>ملاحظات</label><input type="text" id="trip-notes" placeholder="شحنة، تفاصيل..."/></div>
+      </div>
+      <div class="trip-preview">
+        <div class="trip-preview-title">📊 الناتج الفوري</div>
+        <div class="preview-cols">
+          <div class="preview-col">
+            <div class="preview-col-title">🇪🇬 بالجنيه المصري</div>
+            <div class="trip-preview-row"><span>إيراد:</span><span class="val-income" id="prev-rev">0</span></div>
+            <div class="trip-preview-row"><span>مصروف:</span><span class="val-expense" id="prev-exp-eg">0</span></div>
+            <div class="trip-preview-row"><span>عهدة:</span><span class="val-expense" id="prev-cus-eg">0</span></div>
+            <div class="trip-preview-row bold"><span>الصافي:</span><span id="prev-net-eg">0</span></div>
+          </div>
+          <div class="preview-col">
+            <div class="preview-col-title">🇸🇦 بالريال السعودي</div>
+            <div class="trip-preview-row"><span>مصروف:</span><span class="val-expense" id="prev-exp-sa">0</span></div>
+            <div class="trip-preview-row"><span>عهدة:</span><span class="val-expense" id="prev-cus-sa">0</span></div>
+            <div class="trip-preview-row bold"><span>الصافي:</span><span id="prev-net-sa">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-trip')">إلغاء</button><button class="btn-primary" onclick="addTrip()">💾 حفظ النقلة</button></div>
+  </div>
+</div>
+
+<!-- تعديل نقلة -->
+<div class="modal-overlay" id="modal-edit-trip">
+  <div class="modal modal-wide">
+    <div class="modal-header"><h2>✏️ تعديل النقلة</h2><button class="modal-close" onclick="closeModal('modal-edit-trip')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="et-id"/>
+      <div class="form-grid">
+        <div class="form-group"><label>العربية *</label><select id="et-vehicle"></select></div>
+        <div class="form-group"><label>السائق</label><select id="et-driver"></select></div>
+        <div class="form-group"><label>التاريخ *</label><input type="date" id="et-date"/></div>
+        <div class="form-group"><label>الاتجاه *</label><select id="et-dir"><option value="طالع">🚀 طالع</option><option value="نازل">🔄 نازل</option></select></div>
+        <div class="form-group"><label>إيراد (جنيه) *</label><input type="number" id="et-revenue" min="0"/></div>
+        <div class="form-group"><label>مصروف مصري</label><input type="number" id="et-exp-eg" min="0"/></div>
+        <div class="form-group"><label>مصروف سعودي</label><input type="number" id="et-exp-sa" min="0"/></div>
+        <div class="form-group"><label>عهدة مصري</label><input type="number" id="et-cus-eg" min="0"/></div>
+        <div class="form-group"><label>عهدة سعودي</label><input type="number" id="et-cus-sa" min="0"/></div>
+        <div class="form-group"><label>ملاحظات</label><input type="text" id="et-notes"/></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-trip')">إلغاء</button><button class="btn-primary" onclick="saveEditTrip()">💾 حفظ التعديل</button></div>
+  </div>
+</div>
+
+<!-- صيانة -->
+<div class="modal-overlay" id="modal-add-maintenance">
+  <div class="modal modal-wide">
+    <div class="modal-header"><h2>🔧 إضافة سجل صيانة</h2><button class="modal-close" onclick="closeModal('modal-add-maintenance')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>صيانة لـ</label><select id="m-entity-type" onchange="updateMaintEntity()"><option value="vehicle">عربية 🚗</option><option value="trailer">براد ❄️</option></select></div>
+        <div class="form-group"><label>اختار</label><select id="m-entity-id"></select></div>
+        <div class="form-group"><label>تاريخ الصيانة *</label><input type="date" id="m-date"/></div>
+        <div class="form-group"><label>موعد القادمة</label><input type="date" id="m-next-date"/></div>
+        <div class="form-group"><label>التكلفة</label><input type="number" id="m-cost" placeholder="0"/></div>
+        <div class="form-group"><label>المركز</label><input type="text" id="m-center"/></div>
+        <div class="form-group"><label>الحالة</label><select id="m-status"><option value="مكتملة">مكتملة</option><option value="جارية">جارية</option><option value="مجدولة">مجدولة</option></select></div>
+      </div>
+      <div class="maint-types-section">
+        <label class="section-label">✅ أنواع الصيانة (اختار أكتر من حاجة)</label>
+        <div class="maint-checkboxes" id="m-checkboxes">
+          <label class="check-item"><input type="checkbox" value="تغيير زيت"/> تغيير زيت</label>
+          <label class="check-item"><input type="checkbox" value="فلتر زيت"/> فلتر زيت</label>
+          <label class="check-item"><input type="checkbox" value="فلتر هواء"/> فلتر هواء</label>
+          <label class="check-item"><input type="checkbox" value="فلتر وقود"/> فلتر وقود</label>
+          <label class="check-item"><input type="checkbox" value="إطارات"/> إطارات</label>
+          <label class="check-item"><input type="checkbox" value="فرامل"/> فرامل</label>
+          <label class="check-item"><input type="checkbox" value="بطارية"/> بطارية</label>
+          <label class="check-item"><input type="checkbox" value="مكيف"/> مكيف</label>
+          <label class="check-item"><input type="checkbox" value="كهرباء"/> كهرباء</label>
+          <label class="check-item"><input type="checkbox" value="ماء تبريد"/> ماء تبريد</label>
+          <label class="check-item"><input type="checkbox" value="تبريد براد"/> تبريد براد ❄️</label>
+          <label class="check-item"><input type="checkbox" value="ناقل حركة"/> ناقل حركة</label>
+          <label class="check-item"><input type="checkbox" value="شمعات"/> شمعات</label>
+        </div>
+        <div class="form-group" style="margin-top:10px"><label>صيانة أخرى</label><input type="text" id="m-other" placeholder="اكتب هنا..."/></div>
+      </div>
+      <div class="form-group" style="margin-top:10px"><label>ملاحظات</label><input type="text" id="m-notes"/></div>
+    </div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-maintenance')">إلغاء</button><button class="btn-primary" onclick="addMaintenance()">💾 حفظ</button></div>
+  </div>
+</div>
+
+<!-- فحص -->
+<div class="modal-overlay" id="modal-add-inspection"><div class="modal"><div class="modal-header"><h2>🔍 إضافة سجل فحص</h2><button class="modal-close" onclick="closeModal('modal-add-inspection')">✕</button></div><div class="modal-body"><div class="form-grid"><div class="form-group"><label>العربية *</label><select id="ins-vehicle"></select></div><div class="form-group"><label>تاريخ الفحص *</label><input type="date" id="ins-date"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="ins-exp"/></div><div class="form-group"><label>الدولة</label><select id="ins-country"><option value="الأردن">الأردن</option><option value="السعودية">السعودية</option><option value="مصر">مصر</option></select></div><div class="form-group"><label>النتيجة</label><select id="ins-result"><option value="ناجح">ناجح</option><option value="راسب">راسب</option><option value="معلق">معلق</option></select></div><div class="form-group"><label>ملاحظات</label><input type="text" id="ins-notes"/></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-inspection')">إلغاء</button><button class="btn-primary" onclick="addInspection()">💾 حفظ</button></div></div></div>
+<div class="modal-overlay" id="modal-edit-inspection"><div class="modal"><div class="modal-header"><h2>✏️ تعديل سجل الفحص</h2><button class="modal-close" onclick="closeModal('modal-edit-inspection')">✕</button></div><div class="modal-body"><input type="hidden" id="ei-id"/><div class="form-grid"><div class="form-group"><label>العربية *</label><select id="ei-vehicle"></select></div><div class="form-group"><label>تاريخ الفحص *</label><input type="date" id="ei-date"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="ei-exp"/></div><div class="form-group"><label>الدولة</label><select id="ei-country"><option value="الأردن">الأردن</option><option value="السعودية">السعودية</option><option value="مصر">مصر</option></select></div><div class="form-group"><label>النتيجة</label><select id="ei-result"><option value="ناجح">ناجح</option><option value="راسب">راسب</option><option value="معلق">معلق</option></select></div><div class="form-group"><label>ملاحظات</label><input type="text" id="ei-notes"/></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-inspection')">إلغاء</button><button class="btn-primary" onclick="saveEditInspection()">💾 حفظ التعديل</button></div></div></div>
+
+<!-- ترخيص -->
+<div class="modal-overlay" id="modal-add-license"><div class="modal"><div class="modal-header"><h2>📋 إضافة ترخيص</h2><button class="modal-close" onclick="closeModal('modal-add-license')">✕</button></div><div class="modal-body"><div class="form-grid"><div class="form-group"><label>ترخيص لـ</label><select id="lic-entity-type" onchange="updateLicEntity()"><option value="vehicle">عربية 🚗</option><option value="trailer">براد ❄️</option></select></div><div class="form-group"><label>اختار</label><select id="lic-entity-id"></select></div><div class="form-group"><label>رقم الترخيص *</label><input type="text" id="lic-num"/></div><div class="form-group"><label>تاريخ الإصدار *</label><input type="date" id="lic-issue"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="lic-exp"/></div><div class="form-group"><label>الدولة</label><select id="lic-country"><option value="الأردن">الأردن</option><option value="السعودية">السعودية</option><option value="مصر">مصر</option></select></div><div class="form-group"><label>الجهة</label><input type="text" id="lic-authority"/></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-license')">إلغاء</button><button class="btn-primary" onclick="addLicense()">💾 حفظ</button></div></div></div>
+<div class="modal-overlay" id="modal-edit-license"><div class="modal"><div class="modal-header"><h2>✏️ تعديل الترخيص</h2><button class="modal-close" onclick="closeModal('modal-edit-license')">✕</button></div><div class="modal-body"><input type="hidden" id="el-id"/><div class="form-grid"><div class="form-group"><label>ترخيص لـ</label><select id="el-entity-type" onchange="updateElicEntity()"><option value="vehicle">عربية 🚗</option><option value="trailer">براد ❄️</option></select></div><div class="form-group"><label>اختار</label><select id="el-entity-id"></select></div><div class="form-group"><label>رقم الترخيص *</label><input type="text" id="el-num"/></div><div class="form-group"><label>تاريخ الإصدار *</label><input type="date" id="el-issue"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="el-exp"/></div><div class="form-group"><label>الدولة</label><select id="el-country"><option value="الأردن">الأردن</option><option value="السعودية">السعودية</option><option value="مصر">مصر</option></select></div><div class="form-group"><label>الجهة</label><input type="text" id="el-authority"/></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-license')">إلغاء</button><button class="btn-primary" onclick="saveEditLicense()">💾 حفظ التعديل</button></div></div></div>
+
+<!-- تأمين -->
+<div class="modal-overlay" id="modal-add-insurance"><div class="modal modal-wide"><div class="modal-header"><h2>🛡️ إضافة وثيقة تأمين</h2><button class="modal-close" onclick="closeModal('modal-add-insurance')">✕</button></div><div class="modal-body"><div class="form-grid"><div class="form-group"><label>العربية *</label><select id="ins2-vehicle"></select></div><div class="form-group"><label>رقم الوثيقة *</label><input type="text" id="ins2-num"/></div><div class="form-group"><label>شركة التأمين *</label><input type="text" id="ins2-company"/></div><div class="form-group"><label>نوع التأمين</label><select id="ins2-type"><option value="شامل">شامل</option><option value="ضد الغير">ضد الغير</option></select></div><div class="form-group"><label>تاريخ البداية *</label><input type="date" id="ins2-start"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="ins2-exp"/></div><div class="form-group"><label>سعر التأمين الأردني</label><input type="number" id="ins2-price-jo" placeholder="0"/></div><div class="form-group"><label>سعر التأمين السعودي</label><input type="number" id="ins2-price-sa" placeholder="0"/></div></div><div class="maint-types-section"><label class="section-label">🌍 الدول المشمولة</label><div class="maint-checkboxes"><label class="check-item"><input type="checkbox" value="الأردن"/> 🇯🇴 الأردن</label><label class="check-item"><input type="checkbox" value="السعودية"/> 🇸🇦 السعودية</label><label class="check-item"><input type="checkbox" value="مصر"/> 🇪🇬 مصر</label><label class="check-item"><input type="checkbox" value="الإمارات"/> 🇦🇪 الإمارات</label><label class="check-item"><input type="checkbox" value="الكويت"/> 🇰🇼 الكويت</label><label class="check-item"><input type="checkbox" value="البحرين"/> 🇧🇭 البحرين</label><label class="check-item"><input type="checkbox" value="قطر"/> 🇶🇦 قطر</label><label class="check-item"><input type="checkbox" value="عُمان"/> 🇴🇲 عُمان</label></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-insurance')">إلغاء</button><button class="btn-primary" onclick="addInsurance()">💾 حفظ</button></div></div></div>
+<div class="modal-overlay" id="modal-edit-insurance"><div class="modal modal-wide"><div class="modal-header"><h2>✏️ تعديل وثيقة التأمين</h2><button class="modal-close" onclick="closeModal('modal-edit-insurance')">✕</button></div><div class="modal-body"><input type="hidden" id="eins-id"/><div class="form-grid"><div class="form-group"><label>العربية *</label><select id="eins-vehicle"></select></div><div class="form-group"><label>رقم الوثيقة *</label><input type="text" id="eins-num"/></div><div class="form-group"><label>شركة التأمين *</label><input type="text" id="eins-company"/></div><div class="form-group"><label>نوع التأمين</label><select id="eins-type"><option value="شامل">شامل</option><option value="ضد الغير">ضد الغير</option></select></div><div class="form-group"><label>تاريخ البداية *</label><input type="date" id="eins-start"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="eins-exp"/></div><div class="form-group"><label>سعر الأردني</label><input type="number" id="eins-price-jo"/></div><div class="form-group"><label>سعر السعودي</label><input type="number" id="eins-price-sa"/></div></div><div class="maint-types-section"><label class="section-label">🌍 الدول المشمولة</label><div class="maint-checkboxes" id="eins-countries"><label class="check-item"><input type="checkbox" value="الأردن"/> 🇯🇴 الأردن</label><label class="check-item"><input type="checkbox" value="السعودية"/> 🇸🇦 السعودية</label><label class="check-item"><input type="checkbox" value="مصر"/> 🇪🇬 مصر</label><label class="check-item"><input type="checkbox" value="الإمارات"/> 🇦🇪 الإمارات</label><label class="check-item"><input type="checkbox" value="الكويت"/> 🇰🇼 الكويت</label><label class="check-item"><input type="checkbox" value="البحرين"/> 🇧🇭 البحرين</label><label class="check-item"><input type="checkbox" value="قطر"/> 🇶🇦 قطر</label><label class="check-item"><input type="checkbox" value="عُمان"/> 🇴🇲 عُمان</label></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-insurance')">إلغاء</button><button class="btn-primary" onclick="saveEditInsurance()">💾 حفظ التعديل</button></div></div></div>
+
+<div class="toast" id="toast"></div>
+<script src="script.js"></script>
+</body>
+</html>

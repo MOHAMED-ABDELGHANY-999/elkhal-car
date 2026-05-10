@@ -1,0 +1,491 @@
+"use strict";
+const STATE={vehicles:[],drivers:[],trips:[],maintenance:[],inspections:[],licenses:[],insurance:[],notifications:[]};
+const PASS="hamo2006";
+const TITLES={dashboard:"لوحة التحكم",profile:"الملف الشخصي",vehicles:"العربيات والبراد",drivers:"السواقين",accounts:"الحسابات",maintenance:"الصيانة",inspection:"الفحص الدوري",license:"الترخيص",insurance:"التأمين",notifications:"التنبيهات"};
+
+window.addEventListener("DOMContentLoaded",()=>{
+  initLock();
+  loadFromStorage();
+  loadProfile();
+  renderAll();
+  checkAllExpiry();
+  setInterval(checkAllExpiry,60*60*1000);
+});
+
+// ===== LOCK =====
+function initLock(){
+  const unlocked=localStorage.getItem("fleet_unlocked")==="true";
+  if(!unlocked){document.getElementById("lock-screen").classList.remove("hidden");}
+  else{document.getElementById("lock-screen").classList.add("hidden");}
+}
+function checkLock(){
+  const val=document.getElementById("lock-input").value;
+  const err=document.getElementById("lock-error");
+  if(val===PASS){
+    localStorage.setItem("fleet_unlocked","true");
+    document.getElementById("lock-screen").classList.add("hidden");
+    document.getElementById("lock-input").value="";
+    err.classList.add("hidden");
+    showToast("✅ أهلاً يا خال!");
+  } else {
+    err.classList.remove("hidden");
+    document.getElementById("lock-input").value="";
+    document.getElementById("lock-input").focus();
+    setTimeout(()=>err.classList.add("hidden"),2500);
+  }
+}
+function lockApp(){
+  if(!confirm("هتقفل الموقع — متأكد؟"))return;
+  localStorage.setItem("fleet_unlocked","false");
+  document.getElementById("lock-screen").classList.remove("hidden");
+  document.getElementById("lock-input").value="";
+}
+
+// ===== STORAGE =====
+function saveToStorage(){localStorage.setItem("fleet_v2",JSON.stringify(STATE));}
+function loadFromStorage(){const r=localStorage.getItem("fleet_v2");if(r){try{const p=JSON.parse(r);Object.keys(p).forEach(k=>{if(STATE[k]!==undefined)STATE[k]=p[k];});}catch(e){}}}
+
+// ===== PROFILE =====
+function loadProfile(){
+  const p=JSON.parse(localStorage.getItem("fleet_profile")||"{}");
+  if(p.photo)setProfilePhoto(p.photo);
+}
+function setProfilePhoto(src){
+  const img=document.getElementById("profile-img");const tb=document.getElementById("topbar-photo");
+  const ini=document.getElementById("profile-initials-big");const tini=document.getElementById("topbar-initials");
+  if(src){img.src=src;img.style.display="block";if(ini)ini.style.display="none";if(tb){tb.src=src;tb.style.display="block";}if(tini)tini.style.display="none";}
+}
+function uploadPhoto(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{const src=ev.target.result;setProfilePhoto(src);const p=JSON.parse(localStorage.getItem("fleet_profile")||"{}");p.photo=src;localStorage.setItem("fleet_profile",JSON.stringify(p));showToast("✅ تم رفع الصورة");};
+  reader.readAsDataURL(file);
+}
+
+// ===== NAV =====
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  const pg=document.getElementById("page-"+id);if(pg)pg.classList.add("active");
+  const btn=document.querySelector(`[data-page="${id}"]`);if(btn)btn.classList.add("active");
+  document.getElementById("page-title").textContent=TITLES[id]||"";
+  if(window.innerWidth<=700)closeSidebar();
+  if(["inspection","insurance"].includes(id))populateVehicleSelects();
+  if(id==="vehicles")populateDriverSelects();
+  if(id==="accounts"){populateAccFilter();renderAccounts();}
+  if(id==="maintenance"){updateMaintEntity();}
+  if(id==="license"){updateLicEntity();}
+}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");}
+function closeSidebar(){document.getElementById("sidebar").classList.remove("open");}
+
+// ===== MODAL =====
+function openModal(id){
+  populateAllDropdowns();
+  document.getElementById(id).classList.add("active");
+  if(id==="modal-add-maintenance")updateMaintEntity();
+  if(id==="modal-add-license")updateLicEntity();
+}
+function closeModal(id){document.getElementById(id).classList.remove("active");}
+window.addEventListener("click",e=>{if(e.target.classList.contains("modal-overlay"))e.target.classList.remove("active");});
+window.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-overlay.active").forEach(m=>m.classList.remove("active"));});
+
+// ===== TOAST =====
+let _tt;
+function showToast(msg,type="success"){const t=document.getElementById("toast");t.textContent=msg;t.className=`toast show ${type}`;clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove("show"),3000);}
+function showAlertBar(msg){document.getElementById("alert-bar-text").textContent=msg;document.getElementById("alert-bar").classList.remove("hidden");}
+function closeAlertBar(){document.getElementById("alert-bar").classList.add("hidden");}
+
+// ===== HELPERS =====
+function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,4);}
+function getVal(id){const el=document.getElementById(id);return el?el.value.trim():"";}
+function setVal(id,v){const el=document.getElementById(id);if(el)el.value=v!=null?v:"";}
+function num(v){return parseFloat(v)||0;}
+function fmtNum(n){return n%1===0?n.toString():n.toFixed(2);}
+function daysUntil(d){if(!d)return null;const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);return Math.ceil((x-t)/86400000);}
+function formatDate(d){if(!d)return"—";return new Date(d).toLocaleDateString("ar-EG",{year:"numeric",month:"short",day:"numeric"});}
+function expiryStatus(d){const days=daysUntil(d);if(days===null)return{label:"—",cls:""};if(days<0)return{label:`منتهي منذ ${Math.abs(days)} يوم`,cls:"s-danger"};if(days<=30)return{label:`ينتهي خلال ${days} يوم`,cls:"s-warning"};return{label:"سليم",cls:"s-active"};}
+function filterTable(tid,q){document.getElementById(tid).querySelectorAll("tbody tr").forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?"":"none";});}
+function getChecked(c){return[...c.querySelectorAll("input[type=checkbox]:checked")].map(x=>x.value);}
+function setChecked(c,vals=[]){c.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=vals.includes(x.value));}
+function getVehicleName(id){const v=STATE.vehicles.find(x=>x.id===id);return v?v.plate:"—";}
+function getDriverName(id){const d=STATE.drivers.find(x=>x.id===id);return d?d.name:"—";}
+function getTrailerName(id){const v=STATE.vehicles.find(x=>x.id===id);return v&&v.trailerNum?`براد ${v.trailerNum}`:"—";}
+
+// ===== POPULATE DROPDOWNS =====
+function populateAllDropdowns(){
+  populateVehicleSelects();
+  populateDriverSelects();
+  populateAccFilter();
+}
+function populateVehicleSelects(){
+  const ids=["ins-vehicle","ins2-vehicle","eins-vehicle","ei-vehicle","trip-vehicle","et-vehicle"];
+  ids.forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML=`<option value="">-- اختر --</option>`+STATE.vehicles.map(v=>`<option value="${v.id}">${v.plate}${v.type?" — "+v.type:""}</option>`).join("");});
+}
+function populateDriverSelects(){
+  const ids=["v-driver","ev-driver","trip-driver","et-driver"];
+  ids.forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML=`<option value="">-- بدون سائق --</option>`+STATE.drivers.map(d=>`<option value="${d.id}">${d.name}</option>`).join("");});
+}
+function populateAccFilter(){
+  const s=document.getElementById("acc-vehicle-id");if(!s)return;
+  s.innerHTML=`<option value="">-- الكل --</option>`+STATE.vehicles.map(v=>`<option value="${v.id}">${v.plate}${v.type?" — "+v.type:""}</option>`).join("");
+}
+function updateMaintEntity(){
+  const type=getVal("m-entity-type");const s=document.getElementById("m-entity-id");if(!s)return;
+  if(type==="vehicle"){s.innerHTML=STATE.vehicles.length?STATE.vehicles.map(v=>`<option value="${v.id}">${v.plate}</option>`).join(""):`<option value="">لا توجد عربيات</option>`;}
+  else{const withTrailer=STATE.vehicles.filter(v=>v.trailerNum);s.innerHTML=withTrailer.length?withTrailer.map(v=>`<option value="${v.id}">براد ${v.trailerNum} (${v.plate})</option>`).join(""):`<option value="">لا يوجد براد</option>`;}
+}
+function updateLicEntity(){
+  const type=getVal("lic-entity-type");const s=document.getElementById("lic-entity-id");if(!s)return;
+  if(type==="vehicle"){s.innerHTML=STATE.vehicles.length?STATE.vehicles.map(v=>`<option value="${v.id}">${v.plate}</option>`).join(""):`<option value="">لا توجد عربيات</option>`;}
+  else{const wt=STATE.vehicles.filter(v=>v.trailerNum);s.innerHTML=wt.length?wt.map(v=>`<option value="${v.id}">براد ${v.trailerNum} (${v.plate})</option>`).join(""):`<option value="">لا يوجد براد</option>`;}
+}
+function updateElicEntity(){
+  const type=getVal("el-entity-type");const s=document.getElementById("el-entity-id");if(!s)return;
+  if(type==="vehicle"){s.innerHTML=STATE.vehicles.map(v=>`<option value="${v.id}">${v.plate}</option>`).join("");}
+  else{const wt=STATE.vehicles.filter(v=>v.trailerNum);s.innerHTML=wt.map(v=>`<option value="${v.id}">براد ${v.trailerNum} (${v.plate})</option>`).join("");}
+}
+function autoFillDriver(){
+  const vid=getVal("trip-vehicle");
+  const v=STATE.vehicles.find(x=>x.id===vid);
+  if(v&&v.driver){setVal("trip-driver",v.driver);}
+}
+
+// ===== STATUS CLS =====
+function vCls(s){return s==="نشطة"?"s-active":s==="في الصيانة"?"s-info":"s-danger";}
+function dCls(s){return s==="نشط"?"s-active":s==="إجازة"?"s-info":"s-danger";}
+function mCls(s){return s==="مكتملة"?"s-active":s==="جارية"?"s-info":"s-warning";}
+function rCls(s){return s==="ناجح"?"s-active":s==="راسب"?"s-danger":"s-warning";}
+
+function renderAll(){renderVehicles();renderDrivers();renderMaintenance();renderInspections();renderLicenses();renderInsurance();updateDashboard();}
+
+// ===== VEHICLES + TRAILERS =====
+function addVehicle(){
+  const plate=getVal("v-plate"),type=getVal("v-type");
+  if(!plate||!type){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
+  STATE.vehicles.push({id:genId(),plate,type,model:getVal("v-model"),driver:getVal("v-driver"),status:getVal("v-status")||"نشطة",trailerNum:getVal("v-trailer-num"),trailerType:getVal("v-trailer-type"),trailerLic:getVal("v-trailer-lic"),trailerLicExp:getVal("v-trailer-lic-exp"),trailerLicCountry:getVal("v-trailer-lic-country")});
+  saveToStorage();renderVehicles();updateDashboard();checkAllExpiry();
+  closeModal("modal-add-vehicle");["v-plate","v-type","v-model","v-trailer-num","v-trailer-type","v-trailer-lic","v-trailer-lic-exp"].forEach(i=>setVal(i,""));
+  showToast(`✅ تم إضافة العربية ${plate}`);
+}
+function editVehicle(id){
+  const v=STATE.vehicles.find(x=>x.id===id);if(!v)return;
+  populateDriverSelects();
+  setVal("ev-id",v.id);setVal("ev-plate",v.plate);setVal("ev-type",v.type);setVal("ev-model",v.model);
+  setVal("ev-trailer-num",v.trailerNum);setVal("ev-trailer-type",v.trailerType);setVal("ev-trailer-lic",v.trailerLic);setVal("ev-trailer-lic-exp",v.trailerLicExp);
+  document.getElementById("ev-driver").value=v.driver||"";document.getElementById("ev-status").value=v.status||"نشطة";
+  if(document.getElementById("ev-trailer-lic-country"))document.getElementById("ev-trailer-lic-country").value=v.trailerLicCountry||"الأردن";
+  openModal("modal-edit-vehicle");
+}
+function saveEditVehicle(){
+  const id=getVal("ev-id");const i=STATE.vehicles.findIndex(x=>x.id===id);if(i<0)return;
+  STATE.vehicles[i]={...STATE.vehicles[i],plate:getVal("ev-plate"),type:getVal("ev-type"),model:getVal("ev-model"),driver:getVal("ev-driver"),status:getVal("ev-status"),trailerNum:getVal("ev-trailer-num"),trailerType:getVal("ev-trailer-type"),trailerLic:getVal("ev-trailer-lic"),trailerLicExp:getVal("ev-trailer-lic-exp"),trailerLicCountry:getVal("ev-trailer-lic-country")};
+  saveToStorage();renderVehicles();updateDashboard();checkAllExpiry();closeModal("modal-edit-vehicle");showToast("✅ تم تعديل بيانات العربية");
+}
+function deleteVehicle(id){
+  if(!confirm("حذف العربية؟"))return;STATE.vehicles=STATE.vehicles.filter(v=>v.id!==id);
+  saveToStorage();renderVehicles();updateDashboard();showToast("🗑️ تم الحذف","error");
+}
+function renderVehicles(){
+  const tb=document.getElementById("vehicles-tbody");
+  document.getElementById("stat-vehicles").textContent=STATE.vehicles.length;
+  document.getElementById("stat-trailers").textContent=STATE.vehicles.filter(v=>v.trailerNum).length;
+  if(!STATE.vehicles.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد عربيات مضافة</td></tr>`;return;}
+  tb.innerHTML=STATE.vehicles.map((v,i)=>{
+    const tlicSt=v.trailerLicExp?expiryStatus(v.trailerLicExp):{label:"—",cls:""};
+    return`<tr>
+      <td>${i+1}</td><td><strong>${v.plate}</strong></td><td>${v.type||"—"}</td>
+      <td>${getDriverName(v.driver)}</td>
+      <td>${v.trailerNum?`<span class="status-badge s-purple">❄️ ${v.trailerNum}</span>`:"—"}</td>
+      <td>${v.trailerType||"—"}</td>
+      <td>${v.trailerLic||"—"}</td>
+      <td>${v.trailerLicExp?`<span class="status-badge ${tlicSt.cls}">${tlicSt.label}</span>`:"—"}</td>
+      <td><span class="status-badge ${vCls(v.status)}">${v.status}</span></td>
+      <td style="display:flex;gap:5px;padding:8px 10px">
+        <button class="btn-icon" onclick="editVehicle('${v.id}')">✏️</button>
+        <button class="btn-icon danger" onclick="deleteVehicle('${v.id}')">🗑️</button>
+      </td></tr>`;
+  }).join("");
+}
+
+// ===== DRIVERS =====
+function addDriver(){
+  const name=getVal("d-name"),phone=getVal("d-phone"),lic=getVal("d-license"),exp=getVal("d-license-exp");
+  if(!name||!phone||!lic||!exp){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
+  STATE.drivers.push({id:genId(),name,phone,idnum:getVal("d-idnum"),nationality:getVal("d-nationality"),license:lic,licenseExp:exp,status:getVal("d-status")||"نشط",notes:getVal("d-notes")});
+  saveToStorage();renderDrivers();checkAllExpiry();updateDashboard();
+  closeModal("modal-add-driver");["d-name","d-phone","d-idnum","d-license","d-license-exp","d-notes"].forEach(i=>setVal(i,""));
+  showToast(`✅ تم إضافة السائق ${name}`);
+}
+function editDriver(id){
+  const d=STATE.drivers.find(x=>x.id===id);if(!d)return;
+  setVal("ed-id",d.id);setVal("ed-name",d.name);setVal("ed-phone",d.phone);setVal("ed-idnum",d.idnum);setVal("ed-license",d.license);setVal("ed-license-exp",d.licenseExp);setVal("ed-notes",d.notes);
+  document.getElementById("ed-nationality").value=d.nationality||"مصري";document.getElementById("ed-status").value=d.status||"نشط";
+  openModal("modal-edit-driver");
+}
+function saveEditDriver(){
+  const id=getVal("ed-id");const i=STATE.drivers.findIndex(x=>x.id===id);if(i<0)return;
+  STATE.drivers[i]={...STATE.drivers[i],name:getVal("ed-name"),phone:getVal("ed-phone"),idnum:getVal("ed-idnum"),nationality:getVal("ed-nationality"),license:getVal("ed-license"),licenseExp:getVal("ed-license-exp"),status:getVal("ed-status"),notes:getVal("ed-notes")};
+  saveToStorage();renderDrivers();checkAllExpiry();updateDashboard();closeModal("modal-edit-driver");showToast("✅ تم تعديل بيانات السائق");
+}
+function deleteDriver(id){
+  if(!confirm("حذف السائق؟"))return;STATE.drivers=STATE.drivers.filter(d=>d.id!==id);
+  saveToStorage();renderDrivers();updateDashboard();showToast("🗑️ تم الحذف","error");
+}
+function renderDrivers(){
+  const tb=document.getElementById("drivers-tbody");
+  document.getElementById("stat-drivers").textContent=STATE.drivers.length;
+  if(!STATE.drivers.length){tb.innerHTML=`<tr><td colspan="9" class="empty-state">لا يوجد سواقين</td></tr>`;return;}
+  tb.innerHTML=STATE.drivers.map((d,i)=>{const st=expiryStatus(d.licenseExp);return`<tr><td>${i+1}</td><td><strong>${d.name}</strong></td><td>${d.phone}</td><td>${d.license}</td><td>${formatDate(d.licenseExp)}</td><td>${d.nationality||"—"}</td><td><span class="status-badge ${dCls(d.status)}">${d.status}</span></td><td class="notes-cell">${d.notes||"—"}</td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editDriver('${d.id}')">✏️</button><button class="btn-icon danger" onclick="deleteDriver('${d.id}')">🗑️</button></td></tr>`;}).join("");
+}
+
+// ===== ACCOUNTS (TRIPS) =====
+function calcTripNet(){
+  const rev=num(getVal("trip-revenue"));
+  const expEg=num(getVal("trip-exp-eg"));
+  const expSa=num(getVal("trip-exp-sa"));
+  const cusEg=num(getVal("trip-cus-eg"));
+  const cusSa=num(getVal("trip-cus-sa"));
+  const netEg=rev-expEg-cusEg;
+  const netSa=0-expSa-cusSa;
+  document.getElementById("prev-rev").textContent=fmtNum(rev)+" جنيه";
+  document.getElementById("prev-exp-eg").textContent=fmtNum(expEg)+" جنيه";
+  document.getElementById("prev-cus-eg").textContent=fmtNum(cusEg)+" جنيه";
+  const neg=document.getElementById("prev-net-eg");neg.textContent=fmtNum(netEg)+" جنيه";neg.style.color=netEg>=0?"var(--green)":"var(--red)";
+  document.getElementById("prev-exp-sa").textContent=fmtNum(expSa)+" ريال";
+  document.getElementById("prev-cus-sa").textContent=fmtNum(cusSa)+" ريال";
+  const nes=document.getElementById("prev-net-sa");nes.textContent=fmtNum(netSa)+" ريال";nes.style.color=netSa>=0?"var(--green)":"var(--red)";
+}
+function addTrip(){
+  const vehicle=getVal("trip-vehicle"),date=getVal("trip-date"),revenue=getVal("trip-revenue");
+  if(!vehicle||!date||revenue===""){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
+  const rev=num(revenue),expEg=num(getVal("trip-exp-eg")),expSa=num(getVal("trip-exp-sa")),cusEg=num(getVal("trip-cus-eg")),cusSa=num(getVal("trip-cus-sa"));
+  STATE.trips.push({id:genId(),vehicle,driver:getVal("trip-driver"),date,dir:getVal("trip-dir"),revenue:rev,expEg,expSa,cusEg,cusSa,netEg:rev-expEg-cusEg,netSa:0-expSa-cusSa,notes:getVal("trip-notes")});
+  saveToStorage();renderAccounts();closeModal("modal-add-trip");
+  ["trip-revenue","trip-exp-eg","trip-exp-sa","trip-cus-eg","trip-cus-sa","trip-notes"].forEach(i=>setVal(i,""));
+  calcTripNet();showToast("✅ تم إضافة النقلة");
+}
+function editTrip(id){
+  const t=STATE.trips.find(x=>x.id===id);if(!t)return;
+  populateVehicleSelects();populateDriverSelects();
+  setVal("et-id",t.id);setVal("et-date",t.date);setVal("et-revenue",t.revenue);setVal("et-exp-eg",t.expEg);setVal("et-exp-sa",t.expSa);setVal("et-cus-eg",t.cusEg);setVal("et-cus-sa",t.cusSa);setVal("et-notes",t.notes);
+  document.getElementById("et-vehicle").value=t.vehicle;document.getElementById("et-driver").value=t.driver||"";document.getElementById("et-dir").value=t.dir||"طالع";
+  openModal("modal-edit-trip");
+}
+function saveEditTrip(){
+  const id=getVal("et-id");const i=STATE.trips.findIndex(x=>x.id===id);if(i<0)return;
+  const rev=num(getVal("et-revenue")),expEg=num(getVal("et-exp-eg")),expSa=num(getVal("et-exp-sa")),cusEg=num(getVal("et-cus-eg")),cusSa=num(getVal("et-cus-sa"));
+  STATE.trips[i]={...STATE.trips[i],vehicle:getVal("et-vehicle"),driver:getVal("et-driver"),date:getVal("et-date"),dir:getVal("et-dir"),revenue:rev,expEg,expSa,cusEg,cusSa,netEg:rev-expEg-cusEg,netSa:0-expSa-cusSa,notes:getVal("et-notes")};
+  saveToStorage();renderAccounts();closeModal("modal-edit-trip");showToast("✅ تم تعديل النقلة");
+}
+function deleteTrip(id){
+  if(!confirm("حذف هذه النقلة؟"))return;STATE.trips=STATE.trips.filter(t=>t.id!==id);
+  saveToStorage();renderAccounts();showToast("🗑️ تم الحذف","error");
+}
+function renderAccounts(){
+  const fv=getVal("acc-vehicle-id"),fp=getVal("acc-period");
+  const now=new Date();
+  let trips=STATE.trips.filter(t=>{
+    if(fv&&t.vehicle!==fv)return false;
+    if(fp==="month"){const d=new Date(t.date);if(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear())return false;}
+    else if(fp==="year"){const d=new Date(t.date);if(d.getFullYear()!==now.getFullYear())return false;}
+    return true;
+  });
+  const upTrips=trips.filter(t=>t.dir==="طالع");
+  const downTrips=trips.filter(t=>t.dir==="نازل");
+  const sumRev=trips.reduce((s,t)=>s+t.revenue,0);
+  const sumExpEg=trips.reduce((s,t)=>s+t.expEg,0);
+  const sumExpSa=trips.reduce((s,t)=>s+t.expSa,0);
+  const sumCusEg=trips.reduce((s,t)=>s+t.cusEg,0);
+  const sumCusSa=trips.reduce((s,t)=>s+t.cusSa,0);
+  const totalNetEg=trips.reduce((s,t)=>s+t.netEg,0);
+  const totalNetSa=trips.reduce((s,t)=>s+t.netSa,0);
+  const upRev=upTrips.reduce((s,t)=>s+t.revenue,0);
+  const downRev=downTrips.reduce((s,t)=>s+t.revenue,0);
+
+  document.getElementById("sum-up").textContent=fmtNum(upRev);document.getElementById("cnt-up").textContent=upTrips.length+" نقلة";
+  document.getElementById("sum-down").textContent=fmtNum(downRev);document.getElementById("cnt-down").textContent=downTrips.length+" نقلة";
+  document.getElementById("sum-revenue").textContent=fmtNum(sumRev);
+  document.getElementById("sum-exp-eg").textContent=fmtNum(sumExpEg);
+  document.getElementById("sum-exp-sa").textContent=fmtNum(sumExpSa);
+  document.getElementById("sum-cus-eg").textContent=fmtNum(sumCusEg);
+  document.getElementById("sum-cus-sa").textContent=fmtNum(sumCusSa);
+  const neg=document.getElementById("sum-net-eg");neg.textContent=fmtNum(totalNetEg);neg.style.color=totalNetEg>=0?"var(--green)":"var(--red)";
+  const nes=document.getElementById("sum-net-sa");nes.textContent=fmtNum(totalNetSa);nes.style.color=totalNetSa>=0?"var(--green)":"var(--red)";
+
+  const tb=document.getElementById("accounts-tbody");
+  const sorted=[...trips].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!sorted.length){tb.innerHTML=`<tr><td colspan="14" class="empty-state">لا توجد نقلات</td></tr>`;return;}
+  tb.innerHTML=sorted.map((t,i)=>{
+    const netEgCls=t.netEg>=0?"val-income":"val-expense";
+    const netSaCls=t.netSa>=0?"val-income":"val-expense";
+    return`<tr>
+      <td>${i+1}</td>
+      <td>${formatDate(t.date)}</td>
+      <td><span class="status-badge ${t.dir==="طالع"?"s-active":"s-info"}">${t.dir==="طالع"?"🚀 طالع":"🔄 نازل"}</span></td>
+      <td>${getVehicleName(t.vehicle)}</td>
+      <td>${t.driver?getDriverName(t.driver):"—"}</td>
+      <td class="val-income">${fmtNum(t.revenue)}</td>
+      <td class="val-expense">${t.expEg?fmtNum(t.expEg):"—"}</td>
+      <td class="val-expense">${t.expSa?fmtNum(t.expSa):"—"}</td>
+      <td class="val-expense">${t.cusEg?fmtNum(t.cusEg):"—"}</td>
+      <td class="val-expense">${t.cusSa?fmtNum(t.cusSa):"—"}</td>
+      <td class="${netEgCls}">${fmtNum(t.netEg)}</td>
+      <td class="${netSaCls}">${fmtNum(t.netSa)}</td>
+      <td class="notes-cell">${t.notes||"—"}</td>
+      <td style="display:flex;gap:4px;padding:8px 10px">
+        <button class="btn-icon" onclick="editTrip('${t.id}')">✏️</button>
+        <button class="btn-icon danger" onclick="deleteTrip('${t.id}')">🗑️</button>
+      </td></tr>`;
+  }).join("");
+}
+
+// ===== MAINTENANCE =====
+function addMaintenance(){
+  const entityId=getVal("m-entity-id"),date=getVal("m-date");
+  if(!entityId||!date){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
+  const types=getChecked(document.getElementById("m-checkboxes"));const other=getVal("m-other");if(other)types.push(other);
+  if(!types.length){showToast("⚠️ اختار نوع الصيانة على الأقل","warning");return;}
+  STATE.maintenance.push({id:genId(),entityType:getVal("m-entity-type"),entityId,types,date,nextDate:getVal("m-next-date"),cost:getVal("m-cost"),center:getVal("m-center"),status:getVal("m-status")||"مكتملة",notes:getVal("m-notes")});
+  saveToStorage();renderMaintenance();checkAllExpiry();updateDashboard();closeModal("modal-add-maintenance");
+  document.getElementById("m-checkboxes").querySelectorAll("input[type=checkbox]").forEach(c=>c.checked=false);["m-other","m-notes","m-cost","m-center"].forEach(i=>setVal(i,""));
+  showToast("✅ تم إضافة سجل الصيانة");
+}
+function deleteMaintenance(id){
+  if(!confirm("حذف؟"))return;STATE.maintenance=STATE.maintenance.filter(m=>m.id!==id);
+  saveToStorage();renderMaintenance();updateDashboard();showToast("🗑️ تم الحذف","error");
+}
+function getEntityName(type,id){
+  if(type==="trailer"){const v=STATE.vehicles.find(x=>x.id===id);return v&&v.trailerNum?`براد ${v.trailerNum} (${v.plate})`:"براد";}
+  return getVehicleName(id);
+}
+function renderMaintenance(){
+  const tb=document.getElementById("maintenance-tbody");
+  if(!STATE.maintenance.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد سجلات صيانة</td></tr>`;return;}
+  tb.innerHTML=STATE.maintenance.map((m,i)=>{const ns=m.nextDate?expiryStatus(m.nextDate):{label:"—",cls:""};return`<tr><td>${i+1}</td><td><span class="status-badge ${m.entityType==="trailer"?"s-purple":"s-info"}">${m.entityType==="trailer"?"❄️ براد":"🚗 عربية"}</span></td><td>${getEntityName(m.entityType,m.entityId)}</td><td style="max-width:160px;white-space:normal;font-size:.74rem">${(m.types||[]).join(" • ")||"—"}</td><td>${formatDate(m.date)}</td><td><span class="status-badge ${ns.cls}">${ns.label}</span></td><td>${m.cost||"—"}</td><td>${m.center||"—"}</td><td><span class="status-badge ${mCls(m.status)}">${m.status}</span></td><td style="padding:8px 10px"><button class="btn-icon danger" onclick="deleteMaintenance('${m.id}')">🗑️</button></td></tr>`;}).join("");
+}
+
+// ===== INSPECTIONS =====
+function addInspection(){
+  const v=getVal("ins-vehicle"),d=getVal("ins-date"),e=getVal("ins-exp");if(!v||!d||!e){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
+  STATE.inspections.push({id:genId(),vehicle:v,date:d,exp:e,country:getVal("ins-country"),result:getVal("ins-result"),notes:getVal("ins-notes")});
+  saveToStorage();renderInspections();checkAllExpiry();closeModal("modal-add-inspection");showToast("✅ تم إضافة سجل الفحص");
+}
+function editInspection(id){
+  const r=STATE.inspections.find(x=>x.id===id);if(!r)return;populateVehicleSelects();
+  setVal("ei-id",r.id);setVal("ei-date",r.date);setVal("ei-exp",r.exp);setVal("ei-notes",r.notes);
+  document.getElementById("ei-vehicle").value=r.vehicle;document.getElementById("ei-country").value=r.country;document.getElementById("ei-result").value=r.result;
+  openModal("modal-edit-inspection");
+}
+function saveEditInspection(){
+  const id=getVal("ei-id");const i=STATE.inspections.findIndex(x=>x.id===id);if(i<0)return;
+  STATE.inspections[i]={...STATE.inspections[i],vehicle:getVal("ei-vehicle"),date:getVal("ei-date"),exp:getVal("ei-exp"),country:getVal("ei-country"),result:getVal("ei-result"),notes:getVal("ei-notes")};
+  saveToStorage();renderInspections();checkAllExpiry();closeModal("modal-edit-inspection");showToast("✅ تم تعديل سجل الفحص");
+}
+function deleteInspection(id){
+  if(!confirm("حذف؟"))return;STATE.inspections=STATE.inspections.filter(r=>r.id!==id);
+  saveToStorage();renderInspections();showToast("🗑️ تم الحذف","error");
+}
+function renderInspections(){
+  const tb=document.getElementById("inspection-tbody");
+  if(!STATE.inspections.length){tb.innerHTML=`<tr><td colspan="8" class="empty-state">لا توجد سجلات فحص</td></tr>`;return;}
+  tb.innerHTML=STATE.inspections.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr><td>${i+1}</td><td>${getVehicleName(r.vehicle)}</td><td>${formatDate(r.date)}</td><td>${formatDate(r.exp)}</td><td>${r.country}</td><td><span class="status-badge ${rCls(r.result)}">${r.result}</span></td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editInspection('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteInspection('${r.id}')">🗑️</button></td></tr>`;}).join("");
+}
+
+// ===== LICENSES =====
+function addLicense(){
+  const entityId=getVal("lic-entity-id"),num2=getVal("lic-num"),exp=getVal("lic-exp"),issue=getVal("lic-issue");
+  if(!entityId||!num2||!exp||!issue){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
+  STATE.licenses.push({id:genId(),entityType:getVal("lic-entity-type"),entityId,num:num2,issue,exp,country:getVal("lic-country"),authority:getVal("lic-authority")});
+  saveToStorage();renderLicenses();checkAllExpiry();closeModal("modal-add-license");showToast("✅ تم إضافة الترخيص");
+}
+function editLicense(id){
+  const r=STATE.licenses.find(x=>x.id===id);if(!r)return;
+  updateElicEntity();
+  setVal("el-id",r.id);setVal("el-num",r.num);setVal("el-issue",r.issue);setVal("el-exp",r.exp);setVal("el-authority",r.authority);
+  document.getElementById("el-entity-type").value=r.entityType;updateElicEntity();
+  setTimeout(()=>{document.getElementById("el-entity-id").value=r.entityId;document.getElementById("el-country").value=r.country;},50);
+  openModal("modal-edit-license");
+}
+function saveEditLicense(){
+  const id=getVal("el-id");const i=STATE.licenses.findIndex(x=>x.id===id);if(i<0)return;
+  STATE.licenses[i]={...STATE.licenses[i],entityType:getVal("el-entity-type"),entityId:getVal("el-entity-id"),num:getVal("el-num"),issue:getVal("el-issue"),exp:getVal("el-exp"),country:getVal("el-country"),authority:getVal("el-authority")};
+  saveToStorage();renderLicenses();checkAllExpiry();closeModal("modal-edit-license");showToast("✅ تم تعديل الترخيص");
+}
+function deleteLicense(id){
+  if(!confirm("حذف؟"))return;STATE.licenses=STATE.licenses.filter(r=>r.id!==id);
+  saveToStorage();renderLicenses();showToast("🗑️ تم الحذف","error");
+}
+function renderLicenses(){
+  const tb=document.getElementById("license-tbody");
+  if(!STATE.licenses.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد تراخيص</td></tr>`;return;}
+  tb.innerHTML=STATE.licenses.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr><td>${i+1}</td><td><span class="status-badge ${r.entityType==="trailer"?"s-purple":"s-info"}">${r.entityType==="trailer"?"❄️ براد":"🚗 عربية"}</span></td><td>${getEntityName(r.entityType,r.entityId)}</td><td>${r.num}</td><td>${formatDate(r.issue)}</td><td>${formatDate(r.exp)}</td><td>${r.country}</td><td>${r.authority||"—"}</td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editLicense('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteLicense('${r.id}')">🗑️</button></td></tr>`;}).join("");
+}
+
+// ===== INSURANCE =====
+function addInsurance(){
+  const v=getVal("ins2-vehicle"),n=getVal("ins2-num"),c=getVal("ins2-company"),s=getVal("ins2-start"),e=getVal("ins2-exp");
+  if(!v||!n||!c||!s||!e){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
+  const modal=document.getElementById("modal-add-insurance");const countries=getChecked(modal);
+  if(!countries.length){showToast("⚠️ اختار دولة واحدة على الأقل","warning");return;}
+  STATE.insurance.push({id:genId(),vehicle:v,num:n,company:c,type:getVal("ins2-type"),start:s,exp:e,countries,priceJO:getVal("ins2-price-jo"),priceSA:getVal("ins2-price-sa")});
+  saveToStorage();renderInsurance();checkAllExpiry();closeModal("modal-add-insurance");modal.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=false);showToast("✅ تم إضافة وثيقة التأمين");
+}
+function editInsurance(id){
+  const r=STATE.insurance.find(x=>x.id===id);if(!r)return;populateVehicleSelects();
+  setVal("eins-id",r.id);setVal("eins-num",r.num);setVal("eins-company",r.company);setVal("eins-start",r.start);setVal("eins-exp",r.exp);setVal("eins-price-jo",r.priceJO);setVal("eins-price-sa",r.priceSA);
+  document.getElementById("eins-vehicle").value=r.vehicle;document.getElementById("eins-type").value=r.type;
+  setChecked(document.getElementById("eins-countries"),r.countries||[]);
+  openModal("modal-edit-insurance");
+}
+function saveEditInsurance(){
+  const id=getVal("eins-id");const i=STATE.insurance.findIndex(x=>x.id===id);if(i<0)return;
+  const countries=getChecked(document.getElementById("eins-countries"));
+  STATE.insurance[i]={...STATE.insurance[i],vehicle:getVal("eins-vehicle"),num:getVal("eins-num"),company:getVal("eins-company"),type:getVal("eins-type"),start:getVal("eins-start"),exp:getVal("eins-exp"),countries,priceJO:getVal("eins-price-jo"),priceSA:getVal("eins-price-sa")};
+  saveToStorage();renderInsurance();checkAllExpiry();closeModal("modal-edit-insurance");showToast("✅ تم تعديل وثيقة التأمين");
+}
+function deleteInsurance(id){
+  if(!confirm("حذف؟"))return;STATE.insurance=STATE.insurance.filter(r=>r.id!==id);
+  saveToStorage();renderInsurance();showToast("🗑️ تم الحذف","error");
+}
+function renderInsurance(){
+  const tb=document.getElementById("insurance-tbody");
+  if(!STATE.insurance.length){tb.innerHTML=`<tr><td colspan="12" class="empty-state">لا توجد وثائق تأمين</td></tr>`;return;}
+  tb.innerHTML=STATE.insurance.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr><td>${i+1}</td><td>${getVehicleName(r.vehicle)}</td><td>${r.num}</td><td>${r.company}</td><td>${formatDate(r.start)}</td><td>${formatDate(r.exp)}</td><td style="font-size:.74rem;max-width:110px;white-space:normal">${(r.countries||[]).join(" • ")||"—"}</td><td>${r.priceJO?r.priceJO+" د.أ":"—"}</td><td>${r.priceSA?r.priceSA+" ر.س":"—"}</td><td>${r.type}</td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editInsurance('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteInsurance('${r.id}')">🗑️</button></td></tr>`;}).join("");
+}
+
+// ===== EXPIRY CHECK =====
+function checkAllExpiry(){
+  const notifs=[];
+  const push=(icon,title,d,type)=>{const days=daysUntil(d);if(days===null)return;const status=days<0?"expired":days<=30?"soon":"ok";const desc=days<0?`انتهى منذ ${Math.abs(days)} يوم`:days===0?"ينتهي اليوم!":`ينتهي خلال ${days} يوم`;notifs.push({type,status,days,icon,title,desc});};
+  STATE.drivers.forEach(d=>push("👨‍✈️",`رخصة السائق: ${d.name}`,d.licenseExp,"driver"));
+  STATE.vehicles.forEach(v=>{if(v.trailerLicExp)push("❄️",`ترخيص براد: ${v.trailerNum||""} (${v.plate})`,v.trailerLicExp,"trailer");});
+  STATE.inspections.forEach(r=>push("🔍",`فحص: ${getVehicleName(r.vehicle)} (${r.country})`,r.exp,"inspection"));
+  STATE.licenses.forEach(r=>push("📋",`ترخيص ${r.entityType==="trailer"?"براد":"عربية"}: ${getEntityName(r.entityType,r.entityId)} (${r.country})`,r.exp,"license"));
+  STATE.insurance.forEach(r=>push("🛡️",`تأمين: ${getVehicleName(r.vehicle)}`,r.exp,"insurance"));
+  STATE.maintenance.forEach(m=>{if(m.nextDate)push("🔧",`صيانة قادمة: ${getEntityName(m.entityType,m.entityId)}`,m.nextDate,"maintenance");});
+  const order={expired:0,soon:1,ok:2};
+  notifs.sort((a,b)=>(order[a.status]-order[b.status])||(a.days-b.days));
+  STATE.notifications=notifs;
+  const urgent=notifs.filter(n=>n.status!=="ok").length;
+  document.getElementById("notif-badge").textContent=urgent;document.getElementById("bell-badge").textContent=urgent;
+  document.getElementById("stat-expiring").textContent=urgent;
+  const expired=notifs.filter(n=>n.status==="expired");
+  if(expired.length)showAlertBar(`⚠️ تنبيه: ${expired.length} وثيقة منتهية تحتاج تجديد فوري!`);
+  else closeAlertBar();
+  renderNotifications(notifs);updateDashboard();
+}
+function renderNotifications(notifs){
+  const list=document.getElementById("notif-list");
+  if(!notifs.length){list.innerHTML=`<div class="empty-state">✅ كل شيء سليم</div>`;return;}
+  list.innerHTML=notifs.map(n=>`<div class="notif-item ${n.status}" data-status="${n.status}"><div class="notif-icon">${n.icon}</div><div class="notif-content"><div class="notif-title">${n.title}</div><div class="notif-desc">${n.desc}</div><span class="notif-tag ${n.status}">${n.status==="expired"?"⛔ منتهي":n.status==="soon"?"⚠️ قريب الانتهاء":"✅ سليم"}</span></div></div>`).join("");
+}
+function filterNotifs(s,btn){document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll(".notif-item").forEach(item=>{item.style.display=(s==="all"||item.dataset.status===s)?"":"none";});}
+
+// ===== DASHBOARD =====
+function updateDashboard(){
+  const ud=document.getElementById("urgent-alerts");const exp=STATE.notifications.filter(n=>n.status==="expired");
+  ud.innerHTML=exp.length?exp.slice(0,5).map(n=>`<div class="alert-item"><div class="dot red"></div><div>${n.icon} ${n.title} — <strong>${n.desc}</strong></div></div>`).join(""):`<div class="empty-state">✅ لا توجد تنبيهات عاجلة</div>`;
+  const ue=document.getElementById("upcoming-events");const soon=STATE.notifications.filter(n=>n.status==="soon").slice(0,5);
+  ue.innerHTML=soon.length?soon.map(n=>`<div class="alert-item"><div class="dot orange"></div><div>${n.icon} ${n.title} — <strong>${n.desc}</strong></div></div>`).join(""):`<div class="empty-state">لا توجد مواعيد قريبة</div>`;
+}
