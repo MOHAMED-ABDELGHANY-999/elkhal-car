@@ -50,6 +50,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
 .nav-icon{font-size:.95rem;flex-shrink:0}
 .badge{margin-right:auto;background:var(--red);color:#fff;border-radius:20px;padding:1px 7px;font-size:.66rem;font-weight:700;min-width:20px;text-align:center}
 .sidebar-footer{padding:10px 8px;border-top:1px solid var(--border);flex-shrink:0}
+.btn-save-data{width:100%;padding:9px;margin-bottom:8px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);color:#22c55e;border-radius:var(--rs);cursor:pointer;font-family:var(--font);font-size:.84rem;font-weight:800;transition:all .2s}
+.btn-save-data:hover{background:rgba(34,197,94,.22)}
 .btn-logout{width:100%;padding:9px;background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.25);color:var(--red);border-radius:var(--rs);cursor:pointer;font-family:var(--font);font-size:.84rem;font-weight:700;transition:all .2s}
 .btn-logout:hover{background:rgba(255,68,68,.2)}
 

@@ -45,7 +45,10 @@
     <button class="nav-item" onclick="showPage('insurance')" data-page="insurance"><span class="nav-icon">🛡️</span><span>التأمين</span></button>
     <button class="nav-item" onclick="showPage('notifications')" data-page="notifications"><span class="nav-icon">🔔</span><span>التنبيهات</span><span class="badge" id="notif-badge">0</span></button>
   </nav>
-  <div class="sidebar-footer"><button class="btn-logout" onclick="lockApp()">🔒 قفل الموقع</button></div>
+  <div class="sidebar-footer">
+    <button class="btn-save-data" onclick="saveToCloud()">💾 حفظ البيانات</button>
+    <button class="btn-logout" onclick="lockApp()">🔒 قفل الموقع</button>
+  </div>
 </aside>
 
 <main class="main" id="main">
@@ -492,6 +495,8 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

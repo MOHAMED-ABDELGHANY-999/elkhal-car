@@ -1,6 +1,43 @@
 "use strict";
 const STATE={vehicles:[],drivers:[],trips:[],maintenance:[],inspections:[],licenses:[],insurance:[],notifications:[]};
 const PASS="hamo2006";
+
+// ===== FIREBASE =====
+const firebaseConfig = {
+  apiKey: "AIzaSyCMz8ALg3brQ0hGd11KDZFLL3sUWaM7-5s",
+  authDomain: "elkhal-system.firebaseapp.com",
+  projectId: "elkhal-system",
+  storageBucket: "elkhal-system.firebasestorage.app",
+  messagingSenderId: "625217586868",
+  appId: "1:625217586868:web:66ad9bd40a4dda6a7f39e1",
+  measurementId: "G-EG4CK3ZQL0"
+};
+let db=null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  db=firebase.firestore();
+}catch(e){console.error("Firebase init error",e);}
+const CLOUD_DOC="main";
+async function saveToCloud(){
+  try{
+    if(!db){showToast("❌ Firebase مش متصل","error");return;}
+    const profile=JSON.parse(localStorage.getItem("fleet_profile")||"{}");
+    await db.collection("fleetData").doc(CLOUD_DOC).set({state:STATE,profile,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    showToast("✅ تم حفظ البيانات على Firebase");
+  }catch(e){console.error(e);showToast("❌ فشل حفظ البيانات","error");}
+}
+async function loadFromCloud(){
+  try{
+    if(!db)return;
+    const snap=await db.collection("fleetData").doc(CLOUD_DOC).get();
+    if(!snap.exists)return;
+    const data=snap.data()||{};
+    if(data.state){Object.keys(data.state).forEach(k=>{if(STATE[k]!==undefined)STATE[k]=data.state[k]||[];});saveToStorage();}
+    if(data.profile){localStorage.setItem("fleet_profile",JSON.stringify(data.profile));loadProfile();}
+    renderAll();checkAllExpiry();showToast("☁️ تم تحميل البيانات من Firebase");
+  }catch(e){console.error(e);}
+}
+
 const TITLES={dashboard:"لوحة التحكم",profile:"الملف الشخصي",vehicles:"العربيات والبراد",drivers:"السواقين",accounts:"الحسابات",maintenance:"الصيانة",inspection:"الفحص الدوري",license:"الترخيص",insurance:"التأمين",notifications:"التنبيهات"};
 
 window.addEventListener("DOMContentLoaded",()=>{
@@ -8,6 +45,7 @@ window.addEventListener("DOMContentLoaded",()=>{
   loadFromStorage();
   loadProfile();
   renderAll();
+  loadFromCloud();
   checkAllExpiry();
   requestNotifPermission();
   loadCurrencyRates();
