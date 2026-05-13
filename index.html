@@ -45,7 +45,7 @@
     <button class="nav-item" onclick="showPage('insurance')" data-page="insurance"><span class="nav-icon">🛡️</span><span>التأمين</span></button>
     <button class="nav-item" onclick="showPage('notifications')" data-page="notifications"><span class="nav-icon">🔔</span><span>التنبيهات</span><span class="badge" id="notif-badge">0</span></button>
   </nav>
-  <div class="sidebar-footer"><button class="btn-export" onclick="exportData()">📤 تصدير البيانات</button><button class="btn-import" onclick="importData()">📥 استيراد البيانات</button><button class="btn-logout" onclick="lockApp()">🔒 قفل الموقع</button></div>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="lockApp()">🔒 قفل الموقع</button></div>
 </aside>
 
 <main class="main" id="main">
@@ -150,6 +150,18 @@
         <div class="acc-sum-card c-darkgreen"><div class="acc-sum-icon">✅</div><div class="acc-sum-label">صافي مصري<br/>(جنيه)</div><div class="acc-sum-val" id="sum-net-eg">0</div></div>
         <div class="acc-sum-card c-gold"><div class="acc-sum-icon">✅</div><div class="acc-sum-label">صافي سعودي<br/>(ريال)</div><div class="acc-sum-val" id="sum-net-sa">0</div></div>
       </div>
+
+      <!-- أسعار العملات -->
+      <div class="currency-box">
+        <div class="currency-title">💱 أسعار العملات — تحديث تلقائي</div>
+        <div class="currency-cards">
+          <div class="currency-card"><div class="curr-flag">🇸🇦</div><div class="curr-name">الريال السعودي</div><div class="curr-val" id="rate-sar">...</div><div class="curr-sub">جنيه مصري</div></div>
+          <div class="currency-card"><div class="curr-flag">🇺🇸</div><div class="curr-name">الدولار الأمريكي</div><div class="curr-val" id="rate-usd">...</div><div class="curr-sub">جنيه مصري</div></div>
+          <div class="currency-card"><div class="curr-flag">🇪🇺</div><div class="curr-name">اليورو</div><div class="curr-val" id="rate-eur">...</div><div class="curr-sub">جنيه مصري</div></div>
+          <div class="currency-card"><div class="curr-flag">🇯🇴</div><div class="curr-name">الدينار الأردني</div><div class="curr-val" id="rate-jod">...</div><div class="curr-sub">جنيه مصري</div></div>
+        </div>
+        <div class="currency-updated" id="currency-updated">جاري التحديث...</div>
+      </div>
       <div class="table-wrapper" style="margin-top:18px">
         <table class="data-table" id="accounts-table">
           <thead><tr><th>#</th><th>التاريخ</th><th>الاتجاه</th><th>العربية</th><th>السائق</th><th>إيراد (م)</th><th>مصروف (م)</th><th>مصروف (س)</th><th>عهدة (م)</th><th>عهدة (س)</th><th>صافي (م)</th><th>صافي (س)</th><th>ملاحظات</th><th>حذف</th></tr></thead>
@@ -196,7 +208,7 @@
       <div class="section-header"><h1>التأمين</h1><button class="btn-primary" onclick="openModal('modal-add-insurance')">+ إضافة تأمين</button></div>
       <div class="table-wrapper">
         <table class="data-table" id="insurance-table">
-          <thead><tr><th>#</th><th>العربية</th><th>رقم الوثيقة</th><th>شركة التأمين</th><th>البداية</th><th>الانتهاء</th><th>الدول</th><th>سعر الأردن</th><th>سعر السعودية</th><th>النوع</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+          <thead><tr><th>#</th><th>العربية</th><th>شركة التأمين</th><th>النوع</th><th>الدول المشمولة</th><th>🇯🇴 الأردني (بداية/انتهاء/سعر)</th><th>🇸🇦 السعودي (بداية/انتهاء/سعر)</th><th>إجراءات</th></tr></thead>
           <tbody id="insurance-tbody"><tr><td colspan="12" class="empty-state">لا توجد وثائق</td></tr></tbody>
         </table>
       </div>
@@ -387,8 +399,97 @@
 <div class="modal-overlay" id="modal-edit-license"><div class="modal"><div class="modal-header"><h2>✏️ تعديل الترخيص</h2><button class="modal-close" onclick="closeModal('modal-edit-license')">✕</button></div><div class="modal-body"><input type="hidden" id="el-id"/><div class="form-grid"><div class="form-group"><label>ترخيص لـ</label><select id="el-entity-type" onchange="updateElicEntity()"><option value="vehicle">عربية 🚗</option><option value="trailer">براد ❄️</option></select></div><div class="form-group"><label>اختار</label><select id="el-entity-id"></select></div><div class="form-group"><label>رقم الترخيص *</label><input type="text" id="el-num"/></div><div class="form-group"><label>تاريخ الإصدار *</label><input type="date" id="el-issue"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="el-exp"/></div><div class="form-group"><label>الدولة</label><select id="el-country"><option value="الأردن">الأردن</option><option value="السعودية">السعودية</option><option value="مصر">مصر</option></select></div><div class="form-group"><label>الجهة</label><input type="text" id="el-authority"/></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-license')">إلغاء</button><button class="btn-primary" onclick="saveEditLicense()">💾 حفظ التعديل</button></div></div></div>
 
 <!-- تأمين -->
-<div class="modal-overlay" id="modal-add-insurance"><div class="modal modal-wide"><div class="modal-header"><h2>🛡️ إضافة وثيقة تأمين</h2><button class="modal-close" onclick="closeModal('modal-add-insurance')">✕</button></div><div class="modal-body"><div class="form-grid"><div class="form-group"><label>العربية *</label><select id="ins2-vehicle"></select></div><div class="form-group"><label>رقم الوثيقة *</label><input type="text" id="ins2-num"/></div><div class="form-group"><label>شركة التأمين *</label><input type="text" id="ins2-company"/></div><div class="form-group"><label>نوع التأمين</label><select id="ins2-type"><option value="شامل">شامل</option><option value="ضد الغير">ضد الغير</option></select></div><div class="form-group"><label>تاريخ البداية *</label><input type="date" id="ins2-start"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="ins2-exp"/></div><div class="form-group"><label>سعر التأمين الأردني</label><input type="number" id="ins2-price-jo" placeholder="0"/></div><div class="form-group"><label>سعر التأمين السعودي</label><input type="number" id="ins2-price-sa" placeholder="0"/></div></div><div class="maint-types-section"><label class="section-label">🌍 الدول المشمولة</label><div class="maint-checkboxes"><label class="check-item"><input type="checkbox" value="الأردن"/> 🇯🇴 الأردن</label><label class="check-item"><input type="checkbox" value="السعودية"/> 🇸🇦 السعودية</label><label class="check-item"><input type="checkbox" value="مصر"/> 🇪🇬 مصر</label><label class="check-item"><input type="checkbox" value="الإمارات"/> 🇦🇪 الإمارات</label><label class="check-item"><input type="checkbox" value="الكويت"/> 🇰🇼 الكويت</label><label class="check-item"><input type="checkbox" value="البحرين"/> 🇧🇭 البحرين</label><label class="check-item"><input type="checkbox" value="قطر"/> 🇶🇦 قطر</label><label class="check-item"><input type="checkbox" value="عُمان"/> 🇴🇲 عُمان</label></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-insurance')">إلغاء</button><button class="btn-primary" onclick="addInsurance()">💾 حفظ</button></div></div></div>
-<div class="modal-overlay" id="modal-edit-insurance"><div class="modal modal-wide"><div class="modal-header"><h2>✏️ تعديل وثيقة التأمين</h2><button class="modal-close" onclick="closeModal('modal-edit-insurance')">✕</button></div><div class="modal-body"><input type="hidden" id="eins-id"/><div class="form-grid"><div class="form-group"><label>العربية *</label><select id="eins-vehicle"></select></div><div class="form-group"><label>رقم الوثيقة *</label><input type="text" id="eins-num"/></div><div class="form-group"><label>شركة التأمين *</label><input type="text" id="eins-company"/></div><div class="form-group"><label>نوع التأمين</label><select id="eins-type"><option value="شامل">شامل</option><option value="ضد الغير">ضد الغير</option></select></div><div class="form-group"><label>تاريخ البداية *</label><input type="date" id="eins-start"/></div><div class="form-group"><label>تاريخ الانتهاء *</label><input type="date" id="eins-exp"/></div><div class="form-group"><label>سعر الأردني</label><input type="number" id="eins-price-jo"/></div><div class="form-group"><label>سعر السعودي</label><input type="number" id="eins-price-sa"/></div></div><div class="maint-types-section"><label class="section-label">🌍 الدول المشمولة</label><div class="maint-checkboxes" id="eins-countries"><label class="check-item"><input type="checkbox" value="الأردن"/> 🇯🇴 الأردن</label><label class="check-item"><input type="checkbox" value="السعودية"/> 🇸🇦 السعودية</label><label class="check-item"><input type="checkbox" value="مصر"/> 🇪🇬 مصر</label><label class="check-item"><input type="checkbox" value="الإمارات"/> 🇦🇪 الإمارات</label><label class="check-item"><input type="checkbox" value="الكويت"/> 🇰🇼 الكويت</label><label class="check-item"><input type="checkbox" value="البحرين"/> 🇧🇭 البحرين</label><label class="check-item"><input type="checkbox" value="قطر"/> 🇶🇦 قطر</label><label class="check-item"><input type="checkbox" value="عُمان"/> 🇴🇲 عُمان</label></div></div></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-insurance')">إلغاء</button><button class="btn-primary" onclick="saveEditInsurance()">💾 حفظ التعديل</button></div></div></div>
+<div class="modal-overlay" id="modal-add-insurance">
+  <div class="modal modal-wide">
+    <div class="modal-header"><h2>🛡️ إضافة وثيقة تأمين</h2><button class="modal-close" onclick="closeModal('modal-add-insurance')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>العربية *</label><select id="ins2-vehicle"></select></div>
+        <div class="form-group"><label>شركة التأمين *</label><input type="text" id="ins2-company" placeholder="اسم الشركة"/></div>
+        <div class="form-group"><label>رقم الوثيقة *</label><input type="text" id="ins2-num"/></div>
+        <div class="form-group"><label>نوع التأمين</label><select id="ins2-type"><option value="شامل">شامل</option><option value="ضد الغير">ضد الغير</option></select></div>
+      </div>
+      <div class="ins-section-box">
+        <div class="ins-section-label">🇯🇴 التأمين الأردني</div>
+        <div class="form-grid">
+          <div class="form-group"><label>تاريخ البداية</label><input type="date" id="ins2-start-jo"/></div>
+          <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="ins2-exp-jo"/></div>
+          <div class="form-group"><label>السعر (دينار أردني)</label><input type="number" id="ins2-price-jo" placeholder="0" min="0"/></div>
+          <div class="form-group"><label>رقم الوثيقة الأردنية</label><input type="text" id="ins2-num-jo" placeholder="اختياري"/></div>
+        </div>
+      </div>
+      <div class="ins-section-box">
+        <div class="ins-section-label">🇸🇦 التأمين السعودي</div>
+        <div class="form-grid">
+          <div class="form-group"><label>تاريخ البداية</label><input type="date" id="ins2-start-sa"/></div>
+          <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="ins2-exp-sa"/></div>
+          <div class="form-group"><label>السعر (ريال سعودي)</label><input type="number" id="ins2-price-sa" placeholder="0" min="0"/></div>
+          <div class="form-group"><label>رقم الوثيقة السعودية</label><input type="text" id="ins2-num-sa" placeholder="اختياري"/></div>
+        </div>
+      </div>
+      <div class="maint-types-section">
+        <label class="section-label">🌍 الدول المشمولة</label>
+        <div class="maint-checkboxes">
+          <label class="check-item"><input type="checkbox" value="الأردن"/> 🇯🇴 الأردن</label>
+          <label class="check-item"><input type="checkbox" value="السعودية"/> 🇸🇦 السعودية</label>
+          <label class="check-item"><input type="checkbox" value="مصر"/> 🇪🇬 مصر</label>
+          <label class="check-item"><input type="checkbox" value="الإمارات"/> 🇦🇪 الإمارات</label>
+          <label class="check-item"><input type="checkbox" value="الكويت"/> 🇰🇼 الكويت</label>
+          <label class="check-item"><input type="checkbox" value="البحرين"/> 🇧🇭 البحرين</label>
+          <label class="check-item"><input type="checkbox" value="قطر"/> 🇶🇦 قطر</label>
+          <label class="check-item"><input type="checkbox" value="عُمان"/> 🇴🇲 عُمان</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-add-insurance')">إلغاء</button><button class="btn-primary" onclick="addInsurance()">💾 حفظ</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-edit-insurance">
+  <div class="modal modal-wide">
+    <div class="modal-header"><h2>✏️ تعديل وثيقة التأمين</h2><button class="modal-close" onclick="closeModal('modal-edit-insurance')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="eins-id"/>
+      <div class="form-grid">
+        <div class="form-group"><label>العربية *</label><select id="eins-vehicle"></select></div>
+        <div class="form-group"><label>شركة التأمين *</label><input type="text" id="eins-company"/></div>
+        <div class="form-group"><label>رقم الوثيقة *</label><input type="text" id="eins-num"/></div>
+        <div class="form-group"><label>نوع التأمين</label><select id="eins-type"><option value="شامل">شامل</option><option value="ضد الغير">ضد الغير</option></select></div>
+      </div>
+      <div class="ins-section-box">
+        <div class="ins-section-label">🇯🇴 التأمين الأردني</div>
+        <div class="form-grid">
+          <div class="form-group"><label>تاريخ البداية</label><input type="date" id="eins-start-jo"/></div>
+          <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="eins-exp-jo"/></div>
+          <div class="form-group"><label>السعر (دينار أردني)</label><input type="number" id="eins-price-jo" min="0"/></div>
+          <div class="form-group"><label>رقم الوثيقة الأردنية</label><input type="text" id="eins-num-jo"/></div>
+        </div>
+      </div>
+      <div class="ins-section-box">
+        <div class="ins-section-label">🇸🇦 التأمين السعودي</div>
+        <div class="form-grid">
+          <div class="form-group"><label>تاريخ البداية</label><input type="date" id="eins-start-sa"/></div>
+          <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="eins-exp-sa"/></div>
+          <div class="form-group"><label>السعر (ريال سعودي)</label><input type="number" id="eins-price-sa" min="0"/></div>
+          <div class="form-group"><label>رقم الوثيقة السعودية</label><input type="text" id="eins-num-sa"/></div>
+        </div>
+      </div>
+      <div class="maint-types-section">
+        <label class="section-label">🌍 الدول المشمولة</label>
+        <div class="maint-checkboxes" id="eins-countries">
+          <label class="check-item"><input type="checkbox" value="الأردن"/> 🇯🇴 الأردن</label>
+          <label class="check-item"><input type="checkbox" value="السعودية"/> 🇸🇦 السعودية</label>
+          <label class="check-item"><input type="checkbox" value="مصر"/> 🇪🇬 مصر</label>
+          <label class="check-item"><input type="checkbox" value="الإمارات"/> 🇦🇪 الإمارات</label>
+          <label class="check-item"><input type="checkbox" value="الكويت"/> 🇰🇼 الكويت</label>
+          <label class="check-item"><input type="checkbox" value="البحرين"/> 🇧🇭 البحرين</label>
+          <label class="check-item"><input type="checkbox" value="قطر"/> 🇶🇦 قطر</label>
+          <label class="check-item"><input type="checkbox" value="عُمان"/> 🇴🇲 عُمان</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('modal-edit-insurance')">إلغاء</button><button class="btn-primary" onclick="saveEditInsurance()">💾 حفظ التعديل</button></div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 <script src="script.js"></script>

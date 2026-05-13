@@ -9,7 +9,12 @@ window.addEventListener("DOMContentLoaded",()=>{
   loadProfile();
   renderAll();
   checkAllExpiry();
+  requestNotifPermission();
+  loadCurrencyRates();
   setInterval(checkAllExpiry,60*60*1000);
+  setInterval(loadCurrencyRates,60*60*1000);
+  // إشعار عند الفتح لو في حاجة منتهية
+  setTimeout(checkAndNotify,2000);
 });
 
 // ===== LOCK =====
@@ -424,16 +429,24 @@ function renderLicenses(){
 
 // ===== INSURANCE =====
 function addInsurance(){
-  const v=getVal("ins2-vehicle"),n=getVal("ins2-num"),c=getVal("ins2-company"),s=getVal("ins2-start"),e=getVal("ins2-exp");
-  if(!v||!n||!c||!s||!e){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
+  const v=getVal("ins2-vehicle"),c=getVal("ins2-company");
+  if(!v||!c){showToast("⚠️ يرجى اختيار العربية وشركة التأمين","warning");return;}
   const modal=document.getElementById("modal-add-insurance");const countries=getChecked(modal);
   if(!countries.length){showToast("⚠️ اختار دولة واحدة على الأقل","warning");return;}
-  STATE.insurance.push({id:genId(),vehicle:v,num:n,company:c,type:getVal("ins2-type"),start:s,exp:e,countries,priceJO:getVal("ins2-price-jo"),priceSA:getVal("ins2-price-sa")});
-  saveToStorage();renderInsurance();checkAllExpiry();closeModal("modal-add-insurance");modal.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=false);showToast("✅ تم إضافة وثيقة التأمين");
+  const rec={id:genId(),vehicle:v,num:getVal("ins2-num"),company:c,type:getVal("ins2-type"),countries,
+    startJO:getVal("ins2-start-jo"),expJO:getVal("ins2-exp-jo"),priceJO:getVal("ins2-price-jo"),numJO:getVal("ins2-num-jo"),
+    startSA:getVal("ins2-start-sa"),expSA:getVal("ins2-exp-sa"),priceSA:getVal("ins2-price-sa"),numSA:getVal("ins2-num-sa")};
+  STATE.insurance.push(rec);
+  saveToStorage();renderInsurance();checkAllExpiry();closeModal("modal-add-insurance");
+  modal.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=false);
+  ["ins2-num","ins2-company","ins2-start-jo","ins2-exp-jo","ins2-price-jo","ins2-num-jo","ins2-start-sa","ins2-exp-sa","ins2-price-sa","ins2-num-sa"].forEach(i=>setVal(i,""));
+  showToast("✅ تم إضافة وثيقة التأمين");
 }
 function editInsurance(id){
   const r=STATE.insurance.find(x=>x.id===id);if(!r)return;populateVehicleSelects();
-  setVal("eins-id",r.id);setVal("eins-num",r.num);setVal("eins-company",r.company);setVal("eins-start",r.start);setVal("eins-exp",r.exp);setVal("eins-price-jo",r.priceJO);setVal("eins-price-sa",r.priceSA);
+  setVal("eins-id",r.id);setVal("eins-num",r.num);setVal("eins-company",r.company);
+  setVal("eins-start-jo",r.startJO);setVal("eins-exp-jo",r.expJO);setVal("eins-price-jo",r.priceJO);setVal("eins-num-jo",r.numJO);
+  setVal("eins-start-sa",r.startSA);setVal("eins-exp-sa",r.expSA);setVal("eins-price-sa",r.priceSA);setVal("eins-num-sa",r.numSA);
   document.getElementById("eins-vehicle").value=r.vehicle;document.getElementById("eins-type").value=r.type;
   setChecked(document.getElementById("eins-countries"),r.countries||[]);
   openModal("modal-edit-insurance");
@@ -441,7 +454,9 @@ function editInsurance(id){
 function saveEditInsurance(){
   const id=getVal("eins-id");const i=STATE.insurance.findIndex(x=>x.id===id);if(i<0)return;
   const countries=getChecked(document.getElementById("eins-countries"));
-  STATE.insurance[i]={...STATE.insurance[i],vehicle:getVal("eins-vehicle"),num:getVal("eins-num"),company:getVal("eins-company"),type:getVal("eins-type"),start:getVal("eins-start"),exp:getVal("eins-exp"),countries,priceJO:getVal("eins-price-jo"),priceSA:getVal("eins-price-sa")};
+  STATE.insurance[i]={...STATE.insurance[i],vehicle:getVal("eins-vehicle"),num:getVal("eins-num"),company:getVal("eins-company"),type:getVal("eins-type"),countries,
+    startJO:getVal("eins-start-jo"),expJO:getVal("eins-exp-jo"),priceJO:getVal("eins-price-jo"),numJO:getVal("eins-num-jo"),
+    startSA:getVal("eins-start-sa"),expSA:getVal("eins-exp-sa"),priceSA:getVal("eins-price-sa"),numSA:getVal("eins-num-sa")};
   saveToStorage();renderInsurance();checkAllExpiry();closeModal("modal-edit-insurance");showToast("✅ تم تعديل وثيقة التأمين");
 }
 function deleteInsurance(id){
@@ -451,7 +466,32 @@ function deleteInsurance(id){
 function renderInsurance(){
   const tb=document.getElementById("insurance-tbody");
   if(!STATE.insurance.length){tb.innerHTML=`<tr><td colspan="12" class="empty-state">لا توجد وثائق تأمين</td></tr>`;return;}
-  tb.innerHTML=STATE.insurance.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr><td>${i+1}</td><td>${getVehicleName(r.vehicle)}</td><td>${r.num}</td><td>${r.company}</td><td>${formatDate(r.start)}</td><td>${formatDate(r.exp)}</td><td style="font-size:.74rem;max-width:110px;white-space:normal">${(r.countries||[]).join(" • ")||"—"}</td><td>${r.priceJO?r.priceJO+" د.أ":"—"}</td><td>${r.priceSA?r.priceSA+" ر.س":"—"}</td><td>${r.type}</td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editInsurance('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteInsurance('${r.id}')">🗑️</button></td></tr>`;}).join("");
+  tb.innerHTML=STATE.insurance.map((r,i)=>{
+    const stJO=r.expJO?expiryStatus(r.expJO):{label:"—",cls:""};
+    const stSA=r.expSA?expiryStatus(r.expSA):{label:"—",cls:""};
+    return`<tr>
+      <td>${i+1}</td><td>${getVehicleName(r.vehicle)}</td>
+      <td>${r.company}</td><td>${r.type}</td>
+      <td style="font-size:.72rem;max-width:100px;white-space:normal">${(r.countries||[]).join(" • ")||"—"}</td>
+      <td>
+        <div style="font-size:.74rem">
+          <div>🇯🇴 ${formatDate(r.startJO)} ← ${formatDate(r.expJO)}</div>
+          <div style="margin-top:3px"><span class="status-badge ${stJO.cls}">${stJO.label}</span></div>
+          ${r.priceJO?`<div style="color:var(--gold);font-weight:700;margin-top:2px">${r.priceJO} د.أ</div>`:""}
+        </div>
+      </td>
+      <td>
+        <div style="font-size:.74rem">
+          <div>🇸🇦 ${formatDate(r.startSA)} ← ${formatDate(r.expSA)}</div>
+          <div style="margin-top:3px"><span class="status-badge ${stSA.cls}">${stSA.label}</span></div>
+          ${r.priceSA?`<div style="color:var(--gold);font-weight:700;margin-top:2px">${r.priceSA} ر.س</div>`:""}
+        </div>
+      </td>
+      <td style="display:flex;gap:5px;padding:8px 10px">
+        <button class="btn-icon" onclick="editInsurance('${r.id}')">✏️</button>
+        <button class="btn-icon danger" onclick="deleteInsurance('${r.id}')">🗑️</button>
+      </td></tr>`;
+  }).join("");
 }
 
 // ===== EXPIRY CHECK =====
@@ -462,7 +502,10 @@ function checkAllExpiry(){
   STATE.vehicles.forEach(v=>{if(v.trailerLicExp)push("❄️",`ترخيص براد: ${v.trailerNum||""} (${v.plate})`,v.trailerLicExp,"trailer");});
   STATE.inspections.forEach(r=>push("🔍",`فحص: ${getVehicleName(r.vehicle)} (${r.country})`,r.exp,"inspection"));
   STATE.licenses.forEach(r=>push("📋",`ترخيص ${r.entityType==="trailer"?"براد":"عربية"}: ${getEntityName(r.entityType,r.entityId)} (${r.country})`,r.exp,"license"));
-  STATE.insurance.forEach(r=>push("🛡️",`تأمين: ${getVehicleName(r.vehicle)}`,r.exp,"insurance"));
+  STATE.insurance.forEach(r=>{
+    if(r.expJO)push("🛡️",`تأمين أردني: ${getVehicleName(r.vehicle)}`,r.expJO,"insurance");
+    if(r.expSA)push("🛡️",`تأمين سعودي: ${getVehicleName(r.vehicle)}`,r.expSA,"insurance");
+  });
   STATE.maintenance.forEach(m=>{if(m.nextDate)push("🔧",`صيانة قادمة: ${getEntityName(m.entityType,m.entityId)}`,m.nextDate,"maintenance");});
   const order={expired:0,soon:1,ok:2};
   notifs.sort((a,b)=>(order[a.status]-order[b.status])||(a.days-b.days));
@@ -514,4 +557,71 @@ function importData(){
       }catch(err){showToast("❌ الملف غلط أو تالف","error");}
     };reader.readAsText(file);
   };input.click();
+}
+
+// ===== CURRENCY RATES =====
+async function loadCurrencyRates(){
+  try{
+    const res=await fetch("https://api.exchangerate-api.com/v4/latest/EGP");
+    const data=await res.json();
+    if(data&&data.rates){
+      const r=data.rates;
+      const fmt=(code)=>r[code]?(1/r[code]).toFixed(2)+"  جنيه":"—";
+      document.getElementById("rate-sar").textContent=fmt("SAR");
+      document.getElementById("rate-usd").textContent=fmt("USD");
+      document.getElementById("rate-eur").textContent=fmt("EUR");
+      document.getElementById("rate-jod").textContent=fmt("JOD");
+      const now=new Date();
+      document.getElementById("currency-updated").textContent="آخر تحديث: "+now.toLocaleTimeString("ar-EG")+" — "+now.toLocaleDateString("ar-EG");
+    }
+  }catch(e){
+    // fallback values
+    const el=document.getElementById("rate-sar");if(el)el.textContent="8.60 جنيه";
+    const eu=document.getElementById("rate-usd");if(eu)eu.textContent="31.50 جنيه";
+    const ee=document.getElementById("rate-eur");if(ee)ee.textContent="34.20 جنيه";
+    const ej=document.getElementById("rate-jod");if(ej)ej.textContent="44.50 جنيه";
+    const upd=document.getElementById("currency-updated");if(upd)upd.textContent="تعذر التحديث — أسعار تقريبية";
+  }
+}
+
+// ===== MOBILE NOTIFICATIONS =====
+let notifPermission=false;
+async function requestNotifPermission(){
+  if(!("Notification" in window))return;
+  if(Notification.permission==="granted"){notifPermission=true;return;}
+  if(Notification.permission!=="denied"){
+    const p=await Notification.requestPermission();
+    notifPermission=(p==="granted");
+  }
+}
+
+function sendNotif(title,body,icon="🚛"){
+  if(!notifPermission||!("Notification" in window))return;
+  try{new Notification(title,{body,icon:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><text y='32' font-size='32'>🚛</text></svg>"});}
+  catch(e){}
+}
+
+function playAlertSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880,ctx.currentTime);
+    osc.frequency.setValueAtTime(660,ctx.currentTime+0.15);
+    osc.frequency.setValueAtTime(880,ctx.currentTime+0.3);
+    gain.gain.setValueAtTime(0.3,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.5);
+  }catch(e){}
+}
+
+function checkAndNotify(){
+  const expired=STATE.notifications.filter(n=>n.status==="expired");
+  const soon=STATE.notifications.filter(n=>n.status==="soon");
+  if(expired.length>0){
+    playAlertSound();
+    sendNotif("⛔ وثائق منتهية!",`عندك ${expired.length} وثيقة منتهية تحتاج تجديد فوري`);
+  } else if(soon.length>0){
+    sendNotif("⚠️ تنبيه انتهاء قريب",`${soon.length} وثيقة ستنتهي خلال 30 يوم`);
+  }
 }

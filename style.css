@@ -352,3 +352,32 @@ input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لم�
   .sidebar{padding-top:env(safe-area-inset-top);}
   .modal-footer{padding-bottom:max(14px,env(safe-area-inset-bottom));}
 }
+
+/* Insurance sections */
+.ins-section-box{margin-top:14px;padding:14px;background:var(--card2);border-radius:var(--rs);border:1px solid var(--border)}
+.ins-section-label{font-size:.82rem;font-weight:700;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+/* Currency box */
+.currency-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:18px}
+.currency-title{font-size:.82rem;font-weight:700;color:var(--txt2);margin-bottom:12px;text-align:center}
+.currency-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.currency-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);padding:12px;text-align:center;transition:all .2s}
+.currency-card:hover{border-color:var(--blue);transform:translateY(-2px)}
+.curr-flag{font-size:1.6rem;margin-bottom:3px}
+.curr-name{font-size:.68rem;color:var(--txt2);font-weight:600;margin-bottom:5px}
+.curr-val{font-size:1.2rem;font-weight:900;color:var(--gold)}
+.curr-sub{font-size:.62rem;color:var(--muted);margin-top:2px}
+.currency-updated{text-align:center;font-size:.66rem;color:var(--muted);margin-top:8px}
+
+@media(max-width:700px){
+  .currency-cards{grid-template-columns:1fr 1fr}
+  .curr-val{font-size:1rem}
+}
+
+/* iPhone notch + safe area */
+@supports(padding:max(0px)){
+  .topbar{padding-top:max(0px,env(safe-area-inset-top));padding-right:max(16px,env(safe-area-inset-right))}
+  .sidebar{padding-top:env(safe-area-inset-top)}
+  .modal-footer{padding-bottom:max(13px,env(safe-area-inset-bottom))}
+  .toast{bottom:max(24px,env(safe-area-inset-bottom))}
+}
