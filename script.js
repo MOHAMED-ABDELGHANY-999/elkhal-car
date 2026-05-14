@@ -18,13 +18,54 @@ try{
   db=firebase.firestore();
 }catch(e){console.error("Firebase init error",e);}
 const CLOUD_DOC="main";
-async function saveToCloud(){
+function cleanForFirebase(value){
+  if(value === undefined || value === null) return "";
+  if(typeof value === "string" || typeof value === "number" || typeof value === "boolean"){
+    return value;
+  }
+  if(Array.isArray(value)){
+    return value.map(cleanForFirebase);
+  }
+  if(typeof HTMLElement !== "undefined" && value instanceof HTMLElement){
+    return "";
+  }
+  if(typeof File !== "undefined" && value instanceof File){
+    return "";
+  }
+  if(typeof value === "object"){
+    const cleaned = {};
+    Object.keys(value).forEach(key=>{
+      cleaned[key] = cleanForFirebase(value[key]);
+    });
+    return cleaned;
+  }
+  return "";
+}
+ async function saveToCloud(){
   try{
-    if(!db){showToast("❌ Firebase مش متصل","error");return;}
-    const profile=JSON.parse(localStorage.getItem("fleet_profile")||"{}");
-    await db.collection("fleetData").doc(CLOUD_DOC).set({state:STATE,profile,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    if(!db){
+      showToast("❌ Firebase مش متصل","error");
+      return;
+    }
+    const profileRaw = JSON.parse(localStorage.getItem("fleet_profile") || "{}");
+
+    const profile = {
+      ...profileRaw,
+      photo: ""
+    };
+    const dataToSave = cleanForFirebase({
+      state: STATE,
+      profile: profile
+    });
+    await db.collection("fleetData").doc(CLOUD_DOC).set({
+      ...dataToSave,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
     showToast("✅ تم حفظ البيانات على Firebase");
-  }catch(e){console.error(e);showToast("❌ فشل حفظ البيانات","error");}
+  }catch(e){
+    console.error(e);
+    showToast("❌ فشل حفظ البيانات","error");
+  }
 }
 async function loadFromCloud(){
   try{
