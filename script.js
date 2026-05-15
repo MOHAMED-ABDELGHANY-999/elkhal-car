@@ -115,9 +115,7 @@ function initLock(){
   } else {
     document.getElementById("lock-screen").classList.add("hidden");
   }
-  const unlocked=localStorage.getItem("fleet_unlocked")==="true";
-  if(!unlocked){document.getElementById("lock-screen").classList.remove("hidden");}
-  else{document.getElementById("lock-screen").classList.add("hidden");}
+
 }
 function checkLock(){
   const val=document.getElementById("lock-input").value;

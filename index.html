@@ -13,20 +13,20 @@
 <body>
 
 <!-- Lock Screen -->
-<div class="lock-screen" id="lock-screen">    <div class="lock-road"></div>
+<div class="lock-screen" id="lock-screen">
   <div class="lock-box">
-    <div class="lock-logo">🚛</div>
+    <div class="lock-brand">ELKHAL LAND TRANSPORT</div>
     <div class="lock-title">أسطول الخال</div>
     <div class="lock-sub">إدارة الحاج عبدالغني وأولاده</div>
-    <div class="lock-icon">🔒</div>
+    <div class="lock-divider"></div>
+    <div class="lock-eng">Eng. Mohamed Abdel Ghani</div>
     <div class="lock-hint">أدخل كلمة السر للدخول</div>
-
-    <input type="password" id="lock-input" class="lock-input" maxlength="20" autocomplete="off" placeholder="كلمة السر..." onkeydown="if(event.key==='Enter')checkLock()"/>
-
-    <input type="password" id="lock-input" class="lock-input" placeholder="كلمة السر..." onkeydown="if(event.key==='Enter')checkLock()"/>
-
-    <button class="lock-btn" onclick="checkLock()">دخول ←</button>
-    <div class="lock-error hidden" id="lock-error">❌ كلمة السر غلط</div>
+    <div class="lock-input-row">
+      <input type="password" id="lock-input" class="lock-input" maxlength="20" autocomplete="off" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkLock()"/>
+      <button class="lock-enter-btn" onclick="checkLock()">→</button>
+    </div>
+    <div class="lock-error hidden" id="lock-error">❌ كلمة السر غلط — حاول تاني</div>
+    <div class="lock-footer">🚛 نظام إدارة الأسطول المتكامل</div>
   </div>
 </div>
 
