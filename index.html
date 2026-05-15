@@ -14,15 +14,106 @@
 
 <!-- Lock Screen -->
 <div class="lock-screen" id="lock-screen">
+  <!-- خلفية متحركة -->
+  <div class="lock-bg">
+    <div class="lock-road"></div>
+    <div class="lock-line l1"></div>
+    <div class="lock-line l2"></div>
+    <div class="lock-line l3"></div>
+    <div class="lock-stars"></div>
+  </div>
+
+  <!-- الشاحنة المتحركة -->
+  <div class="truck-scene">
+    <svg class="truck-svg" viewBox="0 0 420 160" xmlns="http://www.w3.org/2000/svg">
+      <!-- ظل -->
+      <ellipse cx="210" cy="148" rx="180" ry="8" fill="rgba(0,0,0,0.3)"/>
+      <!-- المقطورة -->
+      <rect x="10" y="45" width="230" height="90" rx="6" fill="#c0392b"/>
+      <rect x="10" y="45" width="230" height="90" rx="6" fill="url(#trailerGrad)"/>
+      <!-- خطوط المقطورة -->
+      <line x1="70" y1="45" x2="70" y2="135" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+      <line x1="130" y1="45" x2="130" y2="135" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+      <line x1="190" y1="45" x2="190" y2="135" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+      <!-- كتابة على المقطورة -->
+      <text x="120" y="97" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="14" font-weight="bold" font-family="Cairo,Arial">أسطول الخال</text>
+      <text x="120" y="114" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="9" font-family="Cairo,Arial">ELKHAL TRANSPORT</text>
+      <!-- المقدمة (الكابينة) -->
+      <rect x="238" y="58" width="130" height="77" rx="8" fill="#c0392b"/>
+      <rect x="238" y="58" width="130" height="77" rx="8" fill="url(#cabGrad)"/>
+      <!-- زجاج الكابينة -->
+      <rect x="290" y="64" width="68" height="42" rx="5" fill="#1a3a5c"/>
+      <rect x="290" y="64" width="68" height="42" rx="5" fill="url(#glassGrad)"/>
+      <!-- تفاصيل الزجاج -->
+      <line x1="324" y1="64" x2="324" y2="106" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+      <!-- مرآة جانبية -->
+      <rect x="356" y="72" width="16" height="10" rx="2" fill="#888"/>
+      <!-- المصابيح الأمامية -->
+      <rect x="362" y="110" width="10" height="6" rx="2" fill="#FFD700"/>
+      <rect x="362" y="118" width="10" height="4" rx="1" fill="#FF4444"/>
+      <!-- مصبح خلفي -->
+      <rect x="8" y="110" width="8" height="14" rx="2" fill="#FF4444"/>
+      <!-- الهيكل السفلي -->
+      <rect x="8" y="132" width="356" height="8" rx="2" fill="#7f1d1d"/>
+      <!-- العجلات -->
+      <!-- عجلة خلف المقطورة 1 -->
+      <circle cx="55" cy="140" r="18" fill="#1a1a1a"/>
+      <circle cx="55" cy="140" r="14" fill="#2a2a2a"/>
+      <circle cx="55" cy="140" r="8" fill="#333"/>
+      <circle cx="55" cy="140" r="3" fill="#555"/>
+      <!-- عجلة خلف المقطورة 2 -->
+      <circle cx="100" cy="140" r="18" fill="#1a1a1a"/>
+      <circle cx="100" cy="140" r="14" fill="#2a2a2a"/>
+      <circle cx="100" cy="140" r="8" fill="#333"/>
+      <circle cx="100" cy="140" r="3" fill="#555"/>
+      <!-- عجلة وسط -->
+      <circle cx="230" cy="140" r="18" fill="#1a1a1a"/>
+      <circle cx="230" cy="140" r="14" fill="#2a2a2a"/>
+      <circle cx="230" cy="140" r="8" fill="#333"/>
+      <circle cx="230" cy="140" r="3" fill="#555"/>
+      <!-- عجلة كابينة -->
+      <circle cx="340" cy="140" r="18" fill="#1a1a1a"/>
+      <circle cx="340" cy="140" r="14" fill="#2a2a2a"/>
+      <circle cx="340" cy="140" r="8" fill="#333"/>
+      <circle cx="340" cy="140" r="3" fill="#555"/>
+      <!-- Gradients -->
+      <defs>
+        <linearGradient id="trailerGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.15)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0.2)"/>
+        </linearGradient>
+        <linearGradient id="cabGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0.3)"/>
+        </linearGradient>
+        <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(100,180,255,0.4)"/>
+          <stop offset="100%" stop-color="rgba(20,60,120,0.6)"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <!-- دخان العادم -->
+    <div class="exhaust">
+      <div class="smoke s1"></div>
+      <div class="smoke s2"></div>
+      <div class="smoke s3"></div>
+    </div>
+  </div>
+
+  <!-- بطاقة تسجيل الدخول -->
   <div class="lock-box">
-    <div class="lock-logo">🚛</div>
+    <div class="lock-company-badge">ELKHAL TRANSPORT CO.</div>
     <div class="lock-title">أسطول الخال</div>
     <div class="lock-sub">إدارة الحاج عبدالغني وأولاده</div>
-    <div class="lock-icon">🔒</div>
-    <div class="lock-hint">أدخل كلمة السر للدخول</div>
-    <input type="password" id="lock-input" class="lock-input" placeholder="كلمة السر..." onkeydown="if(event.key==='Enter')checkLock()"/>
-    <button class="lock-btn" onclick="checkLock()">دخول ←</button>
-    <div class="lock-error hidden" id="lock-error">❌ كلمة السر غلط</div>
+    <div class="lock-divider"><span>●</span></div>
+    <div class="lock-eng">Eng. Mohamed Abdel Ghani</div>
+    <div class="lock-hint">🔐 أدخل كلمة السر</div>
+    <div class="lock-input-wrap">
+      <input type="password" id="lock-input" class="lock-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkLock()"/>
+      <button class="lock-enter-btn" onclick="checkLock()">→</button>
+    </div>
+    <div class="lock-error hidden" id="lock-error">❌ كلمة السر غلط — حاول تاني</div>
+    <div class="lock-footer-text">🚛 نظام إدارة الأسطول المتكامل</div>
   </div>
 </div>
 
@@ -45,17 +136,14 @@
     <button class="nav-item" onclick="showPage('insurance')" data-page="insurance"><span class="nav-icon">🛡️</span><span>التأمين</span></button>
     <button class="nav-item" onclick="showPage('notifications')" data-page="notifications"><span class="nav-icon">🔔</span><span>التنبيهات</span><span class="badge" id="notif-badge">0</span></button>
   </nav>
-  <div class="sidebar-footer">
-    <button class="btn-save-data" onclick="saveToCloud()">💾 حفظ البيانات</button>
-    <button class="btn-logout" onclick="lockApp()">🔒 قفل الموقع</button>
-  </div>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="lockApp()">🔒 قفل الموقع</button></div>
 </aside>
 
 <main class="main" id="main">
   <header class="topbar">
     <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
     <div class="topbar-title" id="page-title">لوحة التحكم</div>
-    <div class="topbar-right">
+    <div class="topbar-right"><div class="sync-indicator" id="sync-indicator" title="متزامن مع Firebase">☁️</div>
       <div class="notif-bell" onclick="showPage('notifications')">🔔<span class="bell-badge" id="bell-badge">0</span></div>
       <div class="topbar-avatar" onclick="showPage('profile')">
         <img id="topbar-photo" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;"/>
@@ -211,7 +299,7 @@
       <div class="section-header"><h1>التأمين</h1><button class="btn-primary" onclick="openModal('modal-add-insurance')">+ إضافة تأمين</button></div>
       <div class="table-wrapper">
         <table class="data-table" id="insurance-table">
-          <thead><tr><th>#</th><th>العربية</th><th>شركة التأمين</th><th>النوع</th><th>الدول المشمولة</th><th>🇯🇴 الأردني (بداية/انتهاء/سعر)</th><th>🇸🇦 السعودي (بداية/انتهاء/سعر)</th><th>إجراءات</th></tr></thead>
+          <thead><tr><th>#</th><th>العربية</th><th>شركة التأمين</th><th>النوع</th><th>الدول</th><th>🇯🇴 الأردني</th><th>🇸🇦 السعودي</th><th>🌍 TIR Carnet</th><th>إجراءات</th></tr></thead>
           <tbody id="insurance-tbody"><tr><td colspan="12" class="empty-state">لا توجد وثائق</td></tr></tbody>
         </table>
       </div>
@@ -430,6 +518,17 @@
           <div class="form-group"><label>رقم الوثيقة السعودية</label><input type="text" id="ins2-num-sa" placeholder="اختياري"/></div>
         </div>
       </div>
+      <div class="ins-section-box">
+        <div class="ins-section-label">🌍 TIR Carnet — كارنيه التربتك</div>
+        <div class="form-grid">
+          <div class="form-group"><label>رقم TIR Carnet</label><input type="text" id="ins2-tir-num" placeholder="رقم الكارنيه"/></div>
+          <div class="form-group"><label>تاريخ الإصدار</label><input type="date" id="ins2-tir-issue"/></div>
+          <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="ins2-tir-exp"/></div>
+          <div class="form-group"><label>الجهة المصدرة</label><input type="text" id="ins2-tir-authority" placeholder="اتحاد الغرف..."/></div>
+          <div class="form-group"><label>عدد الأوراق المتبقية</label><input type="number" id="ins2-tir-sheets" placeholder="0" min="0"/></div>
+          <div class="form-group"><label>ملاحظات</label><input type="text" id="ins2-tir-notes" placeholder="أي ملاحظات..."/></div>
+        </div>
+      </div>
       <div class="maint-types-section">
         <label class="section-label">🌍 الدول المشمولة</label>
         <div class="maint-checkboxes">
@@ -476,6 +575,17 @@
           <div class="form-group"><label>رقم الوثيقة السعودية</label><input type="text" id="eins-num-sa"/></div>
         </div>
       </div>
+      <div class="ins-section-box">
+        <div class="ins-section-label">🌍 TIR Carnet — كارنيه التربتك</div>
+        <div class="form-grid">
+          <div class="form-group"><label>رقم TIR Carnet</label><input type="text" id="eins-tir-num"/></div>
+          <div class="form-group"><label>تاريخ الإصدار</label><input type="date" id="eins-tir-issue"/></div>
+          <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="eins-tir-exp"/></div>
+          <div class="form-group"><label>الجهة المصدرة</label><input type="text" id="eins-tir-authority"/></div>
+          <div class="form-group"><label>عدد الأوراق المتبقية</label><input type="number" id="eins-tir-sheets" min="0"/></div>
+          <div class="form-group"><label>ملاحظات</label><input type="text" id="eins-tir-notes"/></div>
+        </div>
+      </div>
       <div class="maint-types-section">
         <label class="section-label">🌍 الدول المشمولة</label>
         <div class="maint-checkboxes" id="eins-countries">
@@ -495,8 +605,48 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCMz8ALg3brQ0hGd11KDZFLL3sUWaM7-5s",
+    authDomain: "elkhal-system.firebaseapp.com",
+    projectId: "elkhal-system",
+    storageBucket: "elkhal-system.firebasestorage.app",
+    messagingSenderId: "625217586868",
+    appId: "1:625217586868:web:66ad9bd40a4dda6a7f39e1",
+    measurementId: "G-EG4CK3ZQL0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window._db = db;
+  window._firestore = { doc, setDoc, onSnapshot };
+
+  // Listen for changes from Firebase and update local state
+  const docRef = doc(db, "fleet", "main");
+  onSnapshot(docRef, (snap) => {
+    if (snap.exists()) {
+      const data = snap.data();
+      if (window._STATE && data) {
+        let changed = false;
+        Object.keys(data).forEach(k => {
+          if (window._STATE[k] !== undefined && JSON.stringify(window._STATE[k]) !== JSON.stringify(data[k])) {
+            window._STATE[k] = data[k];
+            changed = true;
+          }
+        });
+        if (changed && window._renderAll) {
+          window._renderAll();
+          window._checkAllExpiry();
+          window._showSyncIndicator();
+        }
+      }
+    }
+  }, (err) => { console.log("Firebase offline - using local storage"); });
+</script>
 <script src="script.js"></script>
 </body>
 </html>
