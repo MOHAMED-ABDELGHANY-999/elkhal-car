@@ -20,7 +20,11 @@
     <div class="lock-sub">إدارة الحاج عبدالغني وأولاده</div>
     <div class="lock-icon">🔒</div>
     <div class="lock-hint">أدخل كلمة السر للدخول</div>
+
     <input type="password" id="lock-input" class="lock-input" maxlength="20" autocomplete="off" placeholder="كلمة السر..." onkeydown="if(event.key==='Enter')checkLock()"/>
+
+    <input type="password" id="lock-input" class="lock-input" placeholder="كلمة السر..." onkeydown="if(event.key==='Enter')checkLock()"/>
+
     <button class="lock-btn" onclick="checkLock()">دخول ←</button>
     <div class="lock-error hidden" id="lock-error">❌ كلمة السر غلط</div>
   </div>

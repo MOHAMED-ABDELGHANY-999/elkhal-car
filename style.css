@@ -388,6 +388,7 @@ input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لم�
   .sidebar{padding-top:env(safe-area-inset-top)}
   .modal-footer{padding-bottom:max(13px,env(safe-area-inset-bottom))}
   .toast{bottom:max(24px,env(safe-area-inset-bottom))}
+ 
 }
 
 /* ===== FINAL LOGIN FIX BY CHATGPT ===== */
