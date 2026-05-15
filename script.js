@@ -1,6 +1,84 @@
 "use strict";
 const STATE={vehicles:[],drivers:[],trips:[],maintenance:[],inspections:[],licenses:[],insurance:[],notifications:[]};
 const PASS="hamo2006";
+
+// ===== FIREBASE =====
+const firebaseConfig = {
+  apiKey: "AIzaSyCMz8ALg3brQ0hGd11KDZFLL3sUWaM7-5s",
+  authDomain: "elkhal-system.firebaseapp.com",
+  projectId: "elkhal-system",
+  storageBucket: "elkhal-system.firebasestorage.app",
+  messagingSenderId: "625217586868",
+  appId: "1:625217586868:web:66ad9bd40a4dda6a7f39e1",
+  measurementId: "G-EG4CK3ZQL0"
+};
+let db=null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  db=firebase.firestore();
+}catch(e){console.error("Firebase init error",e);}
+const CLOUD_DOC="main";
+function cleanForFirebase(value){
+  if(value === undefined || value === null) return "";
+  if(typeof value === "string" || typeof value === "number" || typeof value === "boolean"){
+    return value;
+  }
+  if(Array.isArray(value)){
+    return value.map(cleanForFirebase);
+  }
+  if(typeof HTMLElement !== "undefined" && value instanceof HTMLElement){
+    return "";
+  }
+  if(typeof File !== "undefined" && value instanceof File){
+    return "";
+  }
+  if(typeof value === "object"){
+    const cleaned = {};
+    Object.keys(value).forEach(key=>{
+      cleaned[key] = cleanForFirebase(value[key]);
+    });
+    return cleaned;
+  }
+  return "";
+}
+ async function saveToCloud(){
+  try{
+    if(!db){
+      showToast("❌ Firebase مش متصل","error");
+      return;
+    }
+    const profileRaw = JSON.parse(localStorage.getItem("fleet_profile") || "{}");
+
+    const profile = {
+      ...profileRaw,
+      photo: ""
+    };
+    const dataToSave = cleanForFirebase({
+      state: STATE,
+      profile: profile
+    });
+    await db.collection("fleetData").doc(CLOUD_DOC).set({
+      ...dataToSave,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast("✅ تم حفظ البيانات على Firebase");
+  }catch(e){
+    console.error(e);
+    showToast("❌ فشل حفظ البيانات","error");
+  }
+}
+async function loadFromCloud(){
+  try{
+    if(!db)return;
+    const snap=await db.collection("fleetData").doc(CLOUD_DOC).get();
+    if(!snap.exists)return;
+    const data=snap.data()||{};
+    if(data.state){Object.keys(data.state).forEach(k=>{if(STATE[k]!==undefined)STATE[k]=data.state[k]||[];});saveToStorage();}
+    if(data.profile){localStorage.setItem("fleet_profile",JSON.stringify(data.profile));loadProfile();}
+    renderAll();checkAllExpiry();showToast("☁️ تم تحميل البيانات من Firebase");
+  }catch(e){console.error(e);}
+}
+
 const TITLES={dashboard:"لوحة التحكم",profile:"الملف الشخصي",vehicles:"العربيات والبراد",drivers:"السواقين",accounts:"الحسابات",maintenance:"الصيانة",inspection:"الفحص الدوري",license:"الترخيص",insurance:"التأمين",notifications:"التنبيهات"};
 
 window.addEventListener("DOMContentLoaded",()=>{
@@ -8,11 +86,13 @@ window.addEventListener("DOMContentLoaded",()=>{
   loadFromStorage();
   loadProfile();
   renderAll();
+  loadFromCloud();
   checkAllExpiry();
   requestNotifPermission();
   loadCurrencyRates();
   setInterval(checkAllExpiry,60*60*1000);
   setInterval(loadCurrencyRates,60*60*1000);
+  // إشعار عند الفتح لو في حاجة منتهية
   setTimeout(checkAndNotify,2000);
   // Expose globals for Firebase listener
   window._STATE=STATE;
@@ -438,13 +518,11 @@ function addInsurance(){
   if(!countries.length){showToast("⚠️ اختار دولة واحدة على الأقل","warning");return;}
   const rec={id:genId(),vehicle:v,num:getVal("ins2-num"),company:c,type:getVal("ins2-type"),countries,
     startJO:getVal("ins2-start-jo"),expJO:getVal("ins2-exp-jo"),priceJO:getVal("ins2-price-jo"),numJO:getVal("ins2-num-jo"),
-    startSA:getVal("ins2-start-sa"),expSA:getVal("ins2-exp-sa"),priceSA:getVal("ins2-price-sa"),numSA:getVal("ins2-num-sa"),
-    tirNum:getVal("ins2-tir-num"),tirIssue:getVal("ins2-tir-issue"),tirExp:getVal("ins2-tir-exp"),
-    tirAuthority:getVal("ins2-tir-authority"),tirSheets:getVal("ins2-tir-sheets"),tirNotes:getVal("ins2-tir-notes")};
+    startSA:getVal("ins2-start-sa"),expSA:getVal("ins2-exp-sa"),priceSA:getVal("ins2-price-sa"),numSA:getVal("ins2-num-sa")};
   STATE.insurance.push(rec);
   saveToStorage();renderInsurance();checkAllExpiry();closeModal("modal-add-insurance");
   modal.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=false);
-  ["ins2-num","ins2-company","ins2-start-jo","ins2-exp-jo","ins2-price-jo","ins2-num-jo","ins2-start-sa","ins2-exp-sa","ins2-price-sa","ins2-num-sa","ins2-tir-num","ins2-tir-issue","ins2-tir-exp","ins2-tir-authority","ins2-tir-sheets","ins2-tir-notes"].forEach(i=>setVal(i,""));
+  ["ins2-num","ins2-company","ins2-start-jo","ins2-exp-jo","ins2-price-jo","ins2-num-jo","ins2-start-sa","ins2-exp-sa","ins2-price-sa","ins2-num-sa"].forEach(i=>setVal(i,""));
   showToast("✅ تم إضافة وثيقة التأمين");
 }
 function editInsurance(id){
@@ -452,8 +530,6 @@ function editInsurance(id){
   setVal("eins-id",r.id);setVal("eins-num",r.num);setVal("eins-company",r.company);
   setVal("eins-start-jo",r.startJO);setVal("eins-exp-jo",r.expJO);setVal("eins-price-jo",r.priceJO);setVal("eins-num-jo",r.numJO);
   setVal("eins-start-sa",r.startSA);setVal("eins-exp-sa",r.expSA);setVal("eins-price-sa",r.priceSA);setVal("eins-num-sa",r.numSA);
-  setVal("eins-tir-num",r.tirNum);setVal("eins-tir-issue",r.tirIssue);setVal("eins-tir-exp",r.tirExp);
-  setVal("eins-tir-authority",r.tirAuthority);setVal("eins-tir-sheets",r.tirSheets);setVal("eins-tir-notes",r.tirNotes);
   document.getElementById("eins-vehicle").value=r.vehicle;document.getElementById("eins-type").value=r.type;
   setChecked(document.getElementById("eins-countries"),r.countries||[]);
   openModal("modal-edit-insurance");
