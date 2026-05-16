@@ -416,9 +416,9 @@ input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لم�
 .lock-box{
   position:relative;z-index:3;
   width:100%;max-width:380px;
-  background:rgba(10,14,28,.68);
-  backdrop-filter:blur(22px);
-  -webkit-backdrop-filter:blur(22px);
+  background:rgba(10,14,28,.12);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
   border:1px solid rgba(255,255,255,.13);
   border-radius:22px;
   padding:36px 32px 28px;
