@@ -340,28 +340,31 @@ function renderDrivers(){
 
 // ===== ACCOUNTS (TRIPS) =====
 function calcTripNet(){
-  const rev=num(getVal("trip-revenue"));
-  const expEg=num(getVal("trip-exp-eg"));
-  const expSa=num(getVal("trip-exp-sa"));
-  const cusEg=num(getVal("trip-cus-eg"));
-  const cusSa=num(getVal("trip-cus-sa"));
-  const netEg=rev-expEg-cusEg;
-  const netSa=0-expSa-cusSa;
-  document.getElementById("prev-rev").textContent=fmtNum(rev)+" جنيه";
-  document.getElementById("prev-exp-eg").textContent=fmtNum(expEg)+" جنيه";
-  document.getElementById("prev-cus-eg").textContent=fmtNum(cusEg)+" جنيه";
-  const neg=document.getElementById("prev-net-eg");neg.textContent=fmtNum(netEg)+" جنيه";neg.style.color=netEg>=0?"var(--green)":"var(--red)";
-  document.getElementById("prev-exp-sa").textContent=fmtNum(expSa)+" ريال";
-  document.getElementById("prev-cus-sa").textContent=fmtNum(cusSa)+" ريال";
-  const nes=document.getElementById("prev-net-sa");nes.textContent=fmtNum(netSa)+" ريال";nes.style.color=netSa>=0?"var(--green)":"var(--red)";
+  const upSa=num(getVal("trip-up-sa")),downSa=num(getVal("trip-down-sa"));
+  const wageEg=num(getVal("trip-wage-eg"));
+  const expSa=num(getVal("trip-exp-sa")),expEg=num(getVal("trip-exp-eg"));
+  const cusSa=num(getVal("trip-cus-sa")),cusEg=num(getVal("trip-cus-eg"));
+  const netSa=(upSa+downSa)-expSa-cusSa;
+  const netEg=0-wageEg-expEg-cusEg;
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  const sc=(id,v)=>{const e=document.getElementById(id);if(e){e.textContent=v;e.style.color=parseFloat(v)>=0?"var(--green)":"var(--red)";}};
+  s("prev-up-sa",fmtNum(upSa)+" ر"); s("prev-down-sa",fmtNum(downSa)+" ر");
+  s("prev-exp-sa",fmtNum(expSa)+" ر"); s("prev-cus-sa",fmtNum(cusSa)+" ر");
+  sc("prev-net-sa",fmtNum(netSa)+" ر");
+  s("prev-wage-eg",fmtNum(wageEg)+" ج"); s("prev-exp-eg",fmtNum(expEg)+" ج"); s("prev-cus-eg",fmtNum(cusEg)+" ج");
+  sc("prev-net-eg",fmtNum(netEg)+" ج");
 }
 function addTrip(){
-  const vehicle=getVal("trip-vehicle"),date=getVal("trip-date"),revenue=getVal("trip-revenue");
-  if(!vehicle||!date||revenue===""){showToast("⚠️ يرجى ملء الحقول الإلزامية","warning");return;}
-  const rev=num(revenue),expEg=num(getVal("trip-exp-eg")),expSa=num(getVal("trip-exp-sa")),cusEg=num(getVal("trip-cus-eg")),cusSa=num(getVal("trip-cus-sa"));
-  STATE.trips.push({id:genId(),vehicle,driver:getVal("trip-driver"),date,dir:getVal("trip-dir"),revenue:rev,expEg,expSa,cusEg,cusSa,netEg:rev-expEg-cusEg,netSa:0-expSa-cusSa,notes:getVal("trip-notes")});
+  const vehicle=getVal("trip-vehicle"),date=getVal("trip-date");
+  if(!vehicle||!date){showToast("⚠️ اختار العربية والتاريخ","warning");return;}
+  const upSa=num(getVal("trip-up-sa")),downSa=num(getVal("trip-down-sa"));
+  const wageEg=num(getVal("trip-wage-eg"));
+  const expSa=num(getVal("trip-exp-sa")),expEg=num(getVal("trip-exp-eg"));
+  const cusSa=num(getVal("trip-cus-sa")),cusEg=num(getVal("trip-cus-eg"));
+  const totalSa=upSa+downSa, netSa=totalSa-expSa-cusSa, netEg=0-wageEg-expEg-cusEg;
+  STATE.trips.push({id:genId(),vehicle,driver:getVal("trip-driver"),date,upSa,downSa,totalSa,wageEg,expSa,expEg,cusSa,cusEg,netSa,netEg,notes:getVal("trip-notes")});
   saveToStorage();renderAccounts();closeModal("modal-add-trip");
-  ["trip-revenue","trip-exp-eg","trip-exp-sa","trip-cus-eg","trip-cus-sa","trip-notes"].forEach(i=>setVal(i,""));
+  ["trip-up-sa","trip-down-sa","trip-wage-eg","trip-exp-sa","trip-exp-eg","trip-cus-sa","trip-cus-eg","trip-notes"].forEach(i=>setVal(i,""));
   calcTripNet();showToast("✅ تم إضافة النقلة");
 }
 function editTrip(id){
@@ -387,56 +390,48 @@ function renderAccounts(){
   let trips=STATE.trips.filter(t=>{
     if(fv&&t.vehicle!==fv)return false;
     if(fp==="month"){const d=new Date(t.date);if(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear())return false;}
-    else if(fp==="year"){const d=new Date(t.date);if(d.getFullYear()!==now.getFullYear())return false;}
+    else if(fp==="year"){if(new Date(t.date).getFullYear()!==now.getFullYear())return false;}
     return true;
   });
-  const upTrips=trips.filter(t=>t.dir==="طالع");
-  const downTrips=trips.filter(t=>t.dir==="نازل");
-  const sumRev=trips.reduce((s,t)=>s+t.revenue,0);
-  const sumExpEg=trips.reduce((s,t)=>s+t.expEg,0);
-  const sumExpSa=trips.reduce((s,t)=>s+t.expSa,0);
-  const sumCusEg=trips.reduce((s,t)=>s+t.cusEg,0);
-  const sumCusSa=trips.reduce((s,t)=>s+t.cusSa,0);
-  const totalNetEg=trips.reduce((s,t)=>s+t.netEg,0);
-  const totalNetSa=trips.reduce((s,t)=>s+t.netSa,0);
-  const upRev=upTrips.reduce((s,t)=>s+t.revenue,0);
-  const downRev=downTrips.reduce((s,t)=>s+t.revenue,0);
-
-  document.getElementById("sum-up").textContent=fmtNum(upRev);document.getElementById("cnt-up").textContent=upTrips.length+" نقلة";
-  document.getElementById("sum-down").textContent=fmtNum(downRev);document.getElementById("cnt-down").textContent=downTrips.length+" نقلة";
-  document.getElementById("sum-revenue").textContent=fmtNum(sumRev);
-  document.getElementById("sum-exp-eg").textContent=fmtNum(sumExpEg);
-  document.getElementById("sum-exp-sa").textContent=fmtNum(sumExpSa);
-  document.getElementById("sum-cus-eg").textContent=fmtNum(sumCusEg);
-  document.getElementById("sum-cus-sa").textContent=fmtNum(sumCusSa);
-  const neg=document.getElementById("sum-net-eg");neg.textContent=fmtNum(totalNetEg);neg.style.color=totalNetEg>=0?"var(--green)":"var(--red)";
-  const nes=document.getElementById("sum-net-sa");nes.textContent=fmtNum(totalNetSa);nes.style.color=totalNetSa>=0?"var(--green)":"var(--red)";
-
+  const sumUp=trips.reduce((s,t)=>s+(t.upSa||0),0);
+  const sumDown=trips.reduce((s,t)=>s+(t.downSa||0),0);
+  const sumRev=trips.reduce((s,t)=>s+(t.totalSa||0),0);
+  const sumWageEg=trips.reduce((s,t)=>s+(t.wageEg||0),0);
+  const sumExpSa=trips.reduce((s,t)=>s+(t.expSa||0),0);
+  const sumExpEg=trips.reduce((s,t)=>s+(t.expEg||0),0);
+  const sumCusSa=trips.reduce((s,t)=>s+(t.cusSa||0),0);
+  const sumCusEg=trips.reduce((s,t)=>s+(t.cusEg||0),0);
+  const netSa=trips.reduce((s,t)=>s+(t.netSa||0),0);
+  const netEg=trips.reduce((s,t)=>s+(t.netEg||0),0);
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  const sc=(id,v)=>{const e=document.getElementById(id);if(e){e.textContent=v;e.style.color=parseFloat(v)>=0?"var(--green)":"var(--red)";}};
+  s("sum-up",fmtNum(sumUp)); s("cnt-up",trips.filter(t=>t.upSa>0).length+" نقلة");
+  s("sum-down",fmtNum(sumDown)); s("cnt-down",trips.filter(t=>t.downSa>0).length+" نقلة");
+  s("sum-revenue",fmtNum(sumRev)); s("sum-wage-eg",fmtNum(sumWageEg));
+  s("sum-exp-sa",fmtNum(sumExpSa)); s("sum-exp-eg",fmtNum(sumExpEg));
+  s("sum-cus-sa",fmtNum(sumCusSa)); s("sum-cus-eg",fmtNum(sumCusEg));
+  sc("sum-net-sa",fmtNum(netSa)); sc("sum-net-eg",fmtNum(netEg));
   const tb=document.getElementById("accounts-tbody");
   const sorted=[...trips].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  if(!sorted.length){tb.innerHTML=`<tr><td colspan="14" class="empty-state">لا توجد نقلات</td></tr>`;return;}
-  tb.innerHTML=sorted.map((t,i)=>{
-    const netEgCls=t.netEg>=0?"val-income":"val-expense";
-    const netSaCls=t.netSa>=0?"val-income":"val-expense";
-    return`<tr>
-      <td>${i+1}</td>
-      <td>${formatDate(t.date)}</td>
-      <td><span class="status-badge ${t.dir==="طالع"?"s-active":"s-info"}">${t.dir==="طالع"?"🚀 طالع":"🔄 نازل"}</span></td>
-      <td>${getVehicleName(t.vehicle)}</td>
-      <td>${t.driver?getDriverName(t.driver):"—"}</td>
-      <td class="val-income">${fmtNum(t.revenue)}</td>
-      <td class="val-expense">${t.expEg?fmtNum(t.expEg):"—"}</td>
-      <td class="val-expense">${t.expSa?fmtNum(t.expSa):"—"}</td>
-      <td class="val-expense">${t.cusEg?fmtNum(t.cusEg):"—"}</td>
-      <td class="val-expense">${t.cusSa?fmtNum(t.cusSa):"—"}</td>
-      <td class="${netEgCls}">${fmtNum(t.netEg)}</td>
-      <td class="${netSaCls}">${fmtNum(t.netSa)}</td>
-      <td class="notes-cell">${t.notes||"—"}</td>
-      <td style="display:flex;gap:4px;padding:8px 10px">
-        <button class="btn-icon" onclick="editTrip('${t.id}')">✏️</button>
-        <button class="btn-icon danger" onclick="deleteTrip('${t.id}')">🗑️</button>
-      </td></tr>`;
-  }).join("");
+  if(!sorted.length){tb.innerHTML=`<tr><td colspan="15" class="empty-state">لا توجد نقلات</td></tr>`;return;}
+  tb.innerHTML=sorted.map((t,i)=>`<tr>
+    <td>${i+1}</td><td>${formatDate(t.date)}</td>
+    <td>${getVehicleName(t.vehicle)}</td>
+    <td>${t.driver?getDriverName(t.driver):"—"}</td>
+    <td class="val-income">${t.upSa?fmtNum(t.upSa):"—"}</td>
+    <td class="val-income">${t.downSa?fmtNum(t.downSa):"—"}</td>
+    <td class="val-expense">${t.wageEg?fmtNum(t.wageEg):"—"}</td>
+    <td class="val-expense">${t.expSa?fmtNum(t.expSa):"—"}</td>
+    <td class="val-expense">${t.expEg?fmtNum(t.expEg):"—"}</td>
+    <td class="val-expense">${t.cusSa?fmtNum(t.cusSa):"—"}</td>
+    <td class="val-expense">${t.cusEg?fmtNum(t.cusEg):"—"}</td>
+    <td class="${t.netSa>=0?"val-income":"val-expense"}">${fmtNum(t.netSa)}</td>
+    <td class="${t.netEg>=0?"val-income":"val-expense"}">${fmtNum(t.netEg)}</td>
+    <td class="notes-cell">${t.notes||"—"}</td>
+    <td style="display:flex;gap:4px;padding:8px 10px">
+      <button class="btn-icon" onclick="editTrip('${t.id}')">✏️</button>
+      <button class="btn-icon danger" onclick="deleteTrip('${t.id}')">🗑️</button>
+    </td></tr>`).join("");
 }
 
 // ===== MAINTENANCE =====

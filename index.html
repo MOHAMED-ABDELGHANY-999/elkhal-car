@@ -147,15 +147,16 @@
         <div class="acc-filter-group"><label>الفترة</label><select id="acc-period" onchange="renderAccounts()"><option value="all">الكل</option><option value="month">هذا الشهر</option><option value="year">هذه السنة</option></select></div>
       </div>
       <div class="acc-summary-grid">
-        <div class="acc-sum-card c-green"><div class="acc-sum-icon">🚀</div><div class="acc-sum-label">طالع<br/>(مصر→السعودية)</div><div class="acc-sum-val" id="sum-up">0</div><div class="acc-sum-sub" id="cnt-up">0 نقلة</div></div>
-        <div class="acc-sum-card c-blue"><div class="acc-sum-icon">🔄</div><div class="acc-sum-label">نازل<br/>(السعودية→مصر)</div><div class="acc-sum-val" id="sum-down">0</div><div class="acc-sum-sub" id="cnt-down">0 نقلة</div></div>
-        <div class="acc-sum-card c-purple"><div class="acc-sum-icon">📦</div><div class="acc-sum-label">إجمالي الإيرادات<br/>(جنيه)</div><div class="acc-sum-val" id="sum-revenue">0</div></div>
-        <div class="acc-sum-card c-orange"><div class="acc-sum-icon">💸</div><div class="acc-sum-label">مصاريف مصري<br/>(جنيه)</div><div class="acc-sum-val" id="sum-exp-eg">0</div></div>
-        <div class="acc-sum-card c-red2"><div class="acc-sum-icon">💸</div><div class="acc-sum-label">مصاريف سعودي<br/>(ريال)</div><div class="acc-sum-val" id="sum-exp-sa">0</div></div>
-        <div class="acc-sum-card c-yellow"><div class="acc-sum-icon">🤝</div><div class="acc-sum-label">عهدة مصري<br/>(جنيه)</div><div class="acc-sum-val" id="sum-cus-eg">0</div></div>
-        <div class="acc-sum-card c-teal"><div class="acc-sum-icon">🤝</div><div class="acc-sum-label">عهدة سعودي<br/>(ريال)</div><div class="acc-sum-val" id="sum-cus-sa">0</div></div>
-        <div class="acc-sum-card c-darkgreen"><div class="acc-sum-icon">✅</div><div class="acc-sum-label">صافي مصري<br/>(جنيه)</div><div class="acc-sum-val" id="sum-net-eg">0</div></div>
-        <div class="acc-sum-card c-gold"><div class="acc-sum-icon">✅</div><div class="acc-sum-label">صافي سعودي<br/>(ريال)</div><div class="acc-sum-val" id="sum-net-sa">0</div></div>
+        <div class="acc-sum-card c-green"><div class="acc-sum-icon">🚀</div><div class="acc-sum-label">إجمالي طالع (ريال)</div><div class="acc-sum-val" id="sum-up">0</div><div class="acc-sum-sub" id="cnt-up">0 نقلة</div></div>
+        <div class="acc-sum-card c-blue"><div class="acc-sum-icon">🔄</div><div class="acc-sum-label">إجمالي نازل (ريال)</div><div class="acc-sum-val" id="sum-down">0</div><div class="acc-sum-sub" id="cnt-down">0 نقلة</div></div>
+        <div class="acc-sum-card c-purple"><div class="acc-sum-icon">📦</div><div class="acc-sum-label">إجمالي الإيرادات (ريال)</div><div class="acc-sum-val" id="sum-revenue">0</div></div>
+        <div class="acc-sum-card c-orange"><div class="acc-sum-icon">👨‍✈️</div><div class="acc-sum-label">إجمالي أجرة السائق (جنيه)</div><div class="acc-sum-val" id="sum-wage-eg">0</div></div>
+        <div class="acc-sum-card c-red2"><div class="acc-sum-icon">💸</div><div class="acc-sum-label">مصاريف سعودي (ريال)</div><div class="acc-sum-val" id="sum-exp-sa">0</div></div>
+        <div class="acc-sum-card c-yellow"><div class="acc-sum-icon">💸</div><div class="acc-sum-label">مصاريف مصري (جنيه)</div><div class="acc-sum-val" id="sum-exp-eg">0</div></div>
+        <div class="acc-sum-card c-teal"><div class="acc-sum-icon">🤝</div><div class="acc-sum-label">عهدة سعودي (ريال)</div><div class="acc-sum-val" id="sum-cus-sa">0</div></div>
+        <div class="acc-sum-card c-yellow"><div class="acc-sum-icon">🤝</div><div class="acc-sum-label">عهدة مصري (جنيه)</div><div class="acc-sum-val" id="sum-cus-eg">0</div></div>
+        <div class="acc-sum-card c-darkgreen"><div class="acc-sum-icon">✅</div><div class="acc-sum-label">صافي ريال</div><div class="acc-sum-val" id="sum-net-sa">0</div></div>
+        <div class="acc-sum-card c-gold"><div class="acc-sum-icon">✅</div><div class="acc-sum-label">صافي جنيه</div><div class="acc-sum-val" id="sum-net-eg">0</div></div>
       </div>
 
       <!-- أسعار العملات -->
@@ -171,7 +172,7 @@
       </div>
       <div class="table-wrapper" style="margin-top:18px">
         <table class="data-table" id="accounts-table">
-          <thead><tr><th>#</th><th>التاريخ</th><th>الاتجاه</th><th>العربية</th><th>السائق</th><th>إيراد (م)</th><th>مصروف (م)</th><th>مصروف (س)</th><th>عهدة (م)</th><th>عهدة (س)</th><th>صافي (م)</th><th>صافي (س)</th><th>ملاحظات</th><th>حذف</th></tr></thead>
+          <thead><tr><th>#</th><th>التاريخ</th><th>العربية</th><th>السائق</th><th>🚀طالع(ر)</th><th>🔄نازل(ر)</th><th>أجرة(ج)</th><th>مصروف(ر)</th><th>مصروف(ج)</th><th>عهدة(ر)</th><th>عهدة(ج)</th><th>صافي(ر)</th><th>صافي(ج)</th><th>ملاحظات</th><th>حذف</th></tr></thead>
           <tbody id="accounts-tbody"><tr><td colspan="14" class="empty-state">لا توجد نقلات</td></tr></tbody>
         </table>
       </div>
@@ -304,29 +305,32 @@
         <div class="form-group"><label>العربية *</label><select id="trip-vehicle" onchange="autoFillDriver()"></select></div>
         <div class="form-group"><label>السائق</label><select id="trip-driver"></select></div>
         <div class="form-group"><label>التاريخ *</label><input type="date" id="trip-date"/></div>
-        <div class="form-group"><label>الاتجاه *</label><select id="trip-dir"><option value="طالع">🚀 طالع (مصر → السعودية)</option><option value="نازل">🔄 نازل (السعودية → مصر)</option></select></div>
-        <div class="form-group"><label>💵 إيراد النقلة (جنيه) *</label><input type="number" id="trip-revenue" placeholder="0" min="0" oninput="calcTripNet()"/></div>
-        <div class="form-group"><label>💸 مصروف مصري (جنيه)</label><input type="number" id="trip-exp-eg" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>🚀 طالع — إيراد الذهاب (ريال)</label><input type="number" id="trip-up-sa" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>🔄 نازل — إيراد الإياب (ريال)</label><input type="number" id="trip-down-sa" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>👨‍✈️ أجرة السائق (جنيه)</label><input type="number" id="trip-wage-eg" placeholder="0" min="0" oninput="calcTripNet()"/></div>
         <div class="form-group"><label>💸 مصروف سعودي (ريال)</label><input type="number" id="trip-exp-sa" placeholder="0" min="0" oninput="calcTripNet()"/></div>
-        <div class="form-group"><label>🤝 عهدة مصري (جنيه)</label><input type="number" id="trip-cus-eg" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>💸 مصروف مصري (جنيه)</label><input type="number" id="trip-exp-eg" placeholder="0" min="0" oninput="calcTripNet()"/></div>
         <div class="form-group"><label>🤝 عهدة سعودي (ريال)</label><input type="number" id="trip-cus-sa" placeholder="0" min="0" oninput="calcTripNet()"/></div>
+        <div class="form-group"><label>🤝 عهدة مصري (جنيه)</label><input type="number" id="trip-cus-eg" placeholder="0" min="0" oninput="calcTripNet()"/></div>
         <div class="form-group"><label>ملاحظات</label><input type="text" id="trip-notes" placeholder="شحنة، تفاصيل..."/></div>
       </div>
       <div class="trip-preview">
         <div class="trip-preview-title">📊 الناتج الفوري</div>
         <div class="preview-cols">
           <div class="preview-col">
-            <div class="preview-col-title">🇪🇬 بالجنيه المصري</div>
-            <div class="trip-preview-row"><span>إيراد:</span><span class="val-income" id="prev-rev">0</span></div>
-            <div class="trip-preview-row"><span>مصروف:</span><span class="val-expense" id="prev-exp-eg">0</span></div>
-            <div class="trip-preview-row"><span>عهدة:</span><span class="val-expense" id="prev-cus-eg">0</span></div>
-            <div class="trip-preview-row bold"><span>الصافي:</span><span id="prev-net-eg">0</span></div>
-          </div>
-          <div class="preview-col">
-            <div class="preview-col-title">🇸🇦 بالريال السعودي</div>
+            <div class="preview-col-title">🇸🇦 ريال سعودي</div>
+            <div class="trip-preview-row"><span>طالع:</span><span class="val-income" id="prev-up-sa">0</span></div>
+            <div class="trip-preview-row"><span>نازل:</span><span class="val-income" id="prev-down-sa">0</span></div>
             <div class="trip-preview-row"><span>مصروف:</span><span class="val-expense" id="prev-exp-sa">0</span></div>
             <div class="trip-preview-row"><span>عهدة:</span><span class="val-expense" id="prev-cus-sa">0</span></div>
-            <div class="trip-preview-row bold"><span>الصافي:</span><span id="prev-net-sa">0</span></div>
+            <div class="trip-preview-row bold"><span>صافي ريال:</span><span id="prev-net-sa">0</span></div>
+          </div>
+          <div class="preview-col">
+            <div class="preview-col-title">🇪🇬 جنيه مصري</div>
+            <div class="trip-preview-row"><span>أجرة سائق:</span><span class="val-expense" id="prev-wage-eg">0</span></div>
+            <div class="trip-preview-row"><span>مصروف:</span><span class="val-expense" id="prev-exp-eg">0</span></div>
+            <div class="trip-preview-row"><span>عهدة:</span><span class="val-expense" id="prev-cus-eg">0</span></div>
+            <div class="trip-preview-row bold"><span>صافي جنيه:</span><span id="prev-net-eg">0</span></div>
           </div>
         </div>
       </div>
