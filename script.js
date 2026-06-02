@@ -415,20 +415,20 @@ function renderAccounts(){
   const sorted=[...trips].sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!sorted.length){tb.innerHTML=`<tr><td colspan="15" class="empty-state">لا توجد نقلات</td></tr>`;return;}
   tb.innerHTML=sorted.map((t,i)=>`<tr>
-    <td>${i+1}</td><td>${formatDate(t.date)}</td>
-    <td>${getVehicleName(t.vehicle)}</td>
-    <td>${t.driver?getDriverName(t.driver):"—"}</td>
-    <td class="val-income">${t.upSa?fmtNum(t.upSa):"—"}</td>
-    <td class="val-income">${t.downSa?fmtNum(t.downSa):"—"}</td>
-    <td class="val-expense">${t.wageEg?fmtNum(t.wageEg):"—"}</td>
-    <td class="val-expense">${t.expSa?fmtNum(t.expSa):"—"}</td>
-    <td class="val-expense">${t.expEg?fmtNum(t.expEg):"—"}</td>
-    <td class="val-expense">${t.cusSa?fmtNum(t.cusSa):"—"}</td>
-    <td class="val-expense">${t.cusEg?fmtNum(t.cusEg):"—"}</td>
-    <td class="${t.netSa>=0?"val-income":"val-expense"}">${fmtNum(t.netSa)}</td>
-    <td class="${t.netEg>=0?"val-income":"val-expense"}">${fmtNum(t.netEg)}</td>
-    <td class="notes-cell">${t.notes||"—"}</td>
-    <td style="display:flex;gap:4px;padding:8px 10px">
+    <td>${i+1}</td>
+    <td><strong>${getVehicleName(t.vehicle)}</strong> <small style="color:var(--muted)">${formatDate(t.date)}</small></td>
+    <td data-label="السائق">${t.driver?getDriverName(t.driver):"—"}</td>
+    <td data-label="🚀طالع(ر)" class="val-income">${t.upSa?fmtNum(t.upSa):"—"}</td>
+    <td data-label="🔄نازل(ر)" class="val-income">${t.downSa?fmtNum(t.downSa):"—"}</td>
+    <td data-label="أجرة(ج)" class="val-expense">${t.wageEg?fmtNum(t.wageEg):"—"}</td>
+    <td data-label="مصروف(ر)" class="val-expense">${t.expSa?fmtNum(t.expSa):"—"}</td>
+    <td data-label="مصروف(ج)" class="val-expense">${t.expEg?fmtNum(t.expEg):"—"}</td>
+    <td data-label="عهدة(ر)" class="val-expense">${t.cusSa?fmtNum(t.cusSa):"—"}</td>
+    <td data-label="عهدة(ج)" class="val-expense">${t.cusEg?fmtNum(t.cusEg):"—"}</td>
+    <td data-label="صافي(ر)" class="${t.netSa>=0?"val-income":"val-expense"}">${fmtNum(t.netSa)}</td>
+    <td data-label="صافي(ج)" class="${t.netEg>=0?"val-income":"val-expense"}">${fmtNum(t.netEg)}</td>
+    <td data-label="ملاحظات" class="notes-cell">${t.notes||"—"}</td>
+    <td>
       <button class="btn-icon" onclick="editTrip('${t.id}')">✏️</button>
       <button class="btn-icon danger" onclick="deleteTrip('${t.id}')">🗑️</button>
     </td></tr>`).join("");
@@ -483,7 +483,16 @@ function deleteInspection(id){
 function renderInspections(){
   const tb=document.getElementById("inspection-tbody");
   if(!STATE.inspections.length){tb.innerHTML=`<tr><td colspan="8" class="empty-state">لا توجد سجلات فحص</td></tr>`;return;}
-  tb.innerHTML=STATE.inspections.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr><td>${i+1}</td><td>${getVehicleName(r.vehicle)}</td><td>${formatDate(r.date)}</td><td>${formatDate(r.exp)}</td><td>${r.country}</td><td><span class="status-badge ${rCls(r.result)}">${r.result}</span></td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editInspection('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteInspection('${r.id}')">🗑️</button></td></tr>`;}).join("");
+  tb.innerHTML=STATE.inspections.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr>
+    <td>${i+1}</td>
+    <td><strong>${getVehicleName(r.vehicle)}</strong></td>
+    <td data-label="تاريخ الفحص">${formatDate(r.date)}</td>
+    <td data-label="تاريخ الانتهاء">${formatDate(r.exp)}</td>
+    <td data-label="الدولة">${r.country}</td>
+    <td data-label="النتيجة"><span class="status-badge ${rCls(r.result)}">${r.result}</span></td>
+    <td data-label="الحالة"><span class="status-badge ${st.cls}">${st.label}</span></td>
+    <td><button class="btn-icon" onclick="editInspection('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteInspection('${r.id}')">🗑️</button></td>
+  </tr>`;}).join("");
 }
 
 // ===== LICENSES =====
@@ -513,7 +522,17 @@ function deleteLicense(id){
 function renderLicenses(){
   const tb=document.getElementById("license-tbody");
   if(!STATE.licenses.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد تراخيص</td></tr>`;return;}
-  tb.innerHTML=STATE.licenses.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr><td>${i+1}</td><td><span class="status-badge ${r.entityType==="trailer"?"s-purple":"s-info"}">${r.entityType==="trailer"?"❄️ براد":"🚗 عربية"}</span></td><td>${getEntityName(r.entityType,r.entityId)}</td><td>${r.num}</td><td>${formatDate(r.issue)}</td><td>${formatDate(r.exp)}</td><td>${r.country}</td><td>${r.authority||"—"}</td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editLicense('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteLicense('${r.id}')">🗑️</button></td></tr>`;}).join("");
+  tb.innerHTML=STATE.licenses.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr>
+    <td>${i+1}</td>
+    <td><strong>${getEntityName(r.entityType,r.entityId)} <span class="status-badge ${r.entityType==="trailer"?"s-purple":"s-info"}">${r.entityType==="trailer"?"❄️":"🚗"}</span></strong></td>
+    <td data-label="رقم الترخيص">${r.num}</td>
+    <td data-label="تاريخ الإصدار">${formatDate(r.issue)}</td>
+    <td data-label="تاريخ الانتهاء">${formatDate(r.exp)}</td>
+    <td data-label="الدولة">${r.country}</td>
+    <td data-label="الجهة">${r.authority||"—"}</td>
+    <td data-label="الحالة"><span class="status-badge ${st.cls}">${st.label}</span></td>
+    <td><button class="btn-icon" onclick="editLicense('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteLicense('${r.id}')">🗑️</button></td>
+  </tr>`;}).join("");
 }
 
 // ===== INSURANCE =====
