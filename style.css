@@ -259,7 +259,7 @@ select option{background:var(--card)}
 /* ===== MOBILE FIXES ===== */
 /* منع overflow وتظبيط الـ touch */
 html,body{overflow-x:hidden;touch-action:pan-y;}
-input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لما بتضغط على input */
+ /* منع zoom على iOS لما بتضغط على input */
 
 /* تظبيط الجداول على الموبايل */
 
@@ -268,11 +268,7 @@ input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لم�
 
 
 /* Safe area للـ iPhone notch */
-@supports(padding-top:env(safe-area-inset-top)){
-  .topbar{padding-top:max(0px,env(safe-area-inset-top));}
-  .sidebar{padding-top:env(safe-area-inset-top);}
-  .modal-footer{padding-bottom:max(14px,env(safe-area-inset-bottom));}
-}
+
 
 /* Insurance sections */
 .ins-section-box{margin-top:14px;padding:14px;background:var(--card2);border-radius:var(--rs);border:1px solid var(--border)}
@@ -293,13 +289,7 @@ input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لم�
 
 
 /* iPhone notch + safe area */
-@supports(padding:max(0px)){
-  .topbar{padding-top:max(0px,env(safe-area-inset-top));padding-right:max(16px,env(safe-area-inset-right))}
-  .sidebar{padding-top:env(safe-area-inset-top)}
-  .modal-footer{padding-bottom:max(13px,env(safe-area-inset-bottom))}
-  .toast{bottom:max(24px,env(safe-area-inset-bottom))}
- 
-}
+
 
 /* ===== FINAL LOGIN FIX BY CHATGPT ===== */
 /* ===== LOCK SCREEN ===== */
@@ -443,123 +433,143 @@ input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لم�
 
 
 /* Safe area iPhone */
+
+
+/* ===== MOBILE - كل حاجة زي التنبيهات ===== */
+
+/* ================================================
+   MOBILE RESPONSIVE - Cards like Notifications
+   ================================================ */
+
+/* Safe area iPhone */
 @supports(padding:max(0px)){
   .topbar{padding-top:max(0px,env(safe-area-inset-top))}
   .sidebar{padding-top:env(safe-area-inset-top)}
   .toast{bottom:max(24px,env(safe-area-inset-bottom))}
 }
 
-/* ===== MOBILE - كل حاجة زي التنبيهات ===== */
+/* Tablet */
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .dashboard-grid{grid-template-columns:1fr}
+  .acc-summary-grid{grid-template-columns:repeat(3,1fr);gap:10px}
+  .profile-card{flex-direction:column;align-items:center;padding:20px;gap:20px}
+  .currency-cards{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .preview-cols{grid-template-columns:1fr}
+}
+
+/* Mobile */
 @media(max-width:768px){
+
+  /* prevent iOS zoom on input */
+  input,select,textarea{font-size:16px !important}
 
   /* Sidebar */
   .sidebar{transform:translateX(100%);width:280px}
   .sidebar.open{transform:translateX(0);box-shadow:-6px 0 30px rgba(0,0,0,.8)}
-  .main{margin-right:0}
-  .menu-toggle{display:flex}
+  .main{margin-right:0 !important}
+  .menu-toggle{display:flex !important}
 
   /* Topbar */
   .topbar{padding:0 12px;gap:8px;height:54px}
   .topbar-title{font-size:.88rem}
   .topbar-avatar{width:32px;height:32px;font-size:.8rem}
-  .notif-bell{font-size:1.1rem}
 
   /* Page */
   .page-wrapper{padding:10px}
-  .section-header{margin-bottom:14px;flex-wrap:wrap;gap:8px}
+  .section-header{margin-bottom:12px;flex-wrap:wrap;gap:8px}
   .section-header h1{font-size:1.2rem}
   .section-header .btn-primary{width:100%;text-align:center;padding:11px}
 
   /* Stats */
-  .stats-grid{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-  .stat-card{padding:12px 10px;gap:10px}
-  .stat-num{font-size:1.4rem}
-  .stat-icon{font-size:1.5rem}
-  .stat-label{font-size:.68rem}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .stat-card{padding:12px 10px}
+  .stat-num{font-size:1.35rem}
+  .stat-icon{font-size:1.4rem}
+  .stat-label{font-size:.66rem}
 
   /* Dashboard */
-  .dashboard-grid{grid-template-columns:1fr;gap:12px}
+  .dashboard-grid{grid-template-columns:1fr;gap:10px}
 
   /* Search */
-  .search-bar input{max-width:100%;width:100%}
+  .search-bar input{max-width:100% !important;width:100%}
 
-  /* ===== TABLES → NOTIFICATION-STYLE CARDS ===== */
+  /* ============================================
+     TABLES → CARDS (نفس شكل التنبيهات)
+     ============================================ */
   .table-wrapper{
     background:transparent !important;
     border:none !important;
     border-radius:0 !important;
     overflow:visible !important;
   }
-  .data-table{display:block !important;width:100%}
+  .data-table{display:block !important}
   .data-table thead{display:none !important}
   .data-table tbody{
     display:flex !important;
     flex-direction:column !important;
     gap:10px !important;
   }
+
+  /* كل صف = كارد */
   .data-table tbody tr{
     display:block !important;
     background:var(--card) !important;
     border:1px solid var(--border) !important;
     border-radius:12px !important;
-    padding:14px 16px !important;
+    padding:13px 15px !important;
     border-right:3px solid var(--blue) !important;
-    transition:all .2s !important;
   }
-  .data-table tbody tr:hover{
-    border-color:var(--border-a) !important;
-    background:var(--inp) !important;
-  }
+  .data-table tbody tr:hover{background:var(--inp) !important}
+
+  /* كل خانة = سطر */
   .data-table td{
     display:flex !important;
     justify-content:space-between !important;
     align-items:center !important;
-    padding:5px 0 !important;
+    padding:4px 0 !important;
     border:none !important;
     font-size:.84rem !important;
     white-space:normal !important;
     word-break:break-word !important;
+    min-height:28px !important;
     border-bottom:1px solid rgba(255,255,255,.04) !important;
   }
   .data-table td:last-child{border-bottom:none !important}
 
-  /* رقم الصف - اتخبى */
+  /* رقم الصف - مخفي */
   .data-table td:first-child{display:none !important}
 
-  /* الاسم الرئيسي - يظهر كبير وملون زي عنوان التنبيه */
+  /* الاسم الرئيسي - عنوان الكارد */
   .data-table td:nth-child(2){
+    display:block !important;
     font-size:1rem !important;
     font-weight:700 !important;
     color:var(--txt) !important;
-    padding-bottom:10px !important;
-    margin-bottom:4px !important;
+    padding-bottom:9px !important;
+    margin-bottom:5px !important;
     border-bottom:1px solid var(--border) !important;
-    justify-content:flex-start !important;
-    display:block !important;
   }
 
-  /* data-label يظهر قبل كل بيانة */
-  .data-table td[data-label]{
-    display:flex !important;
-    justify-content:space-between !important;
-  }
+  /* label قبل كل بيانة */
   .data-table td[data-label]::before{
     content:attr(data-label) !important;
-    font-size:.74rem !important;
+    font-size:.72rem !important;
     color:var(--muted) !important;
     font-weight:600 !important;
     flex-shrink:0 !important;
-    margin-left:10px !important;
+    margin-left:8px !important;
   }
 
-  /* الإجراءات - زرار واضح في الأسفل */
+  /* أزرار الإجراءات في الأسفل */
   .data-table td:last-child{
     display:flex !important;
     gap:8px !important;
-    padding-top:10px !important;
-    margin-top:6px !important;
+    padding-top:9px !important;
+    margin-top:5px !important;
     border-top:1px solid var(--border) !important;
-    justify-content:flex-end !important;
+    justify-content:stretch !important;
   }
   .data-table td:last-child .btn-icon{
     flex:1 !important;
@@ -568,76 +578,53 @@ input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لم�
     font-size:.82rem !important;
   }
 
-  /* Accounts summary */
+  /* Accounts */
   .acc-summary-grid{grid-template-columns:1fr 1fr;gap:8px}
-  .acc-sum-card{padding:12px}
-  .acc-sum-val{font-size:1.1rem}
-  .acc-sum-label{font-size:.66rem}
-  .acc-sum-icon{font-size:1.3rem;margin-bottom:4px}
-
-  /* Acc filter */
+  .acc-sum-card{padding:11px}
+  .acc-sum-val{font-size:1.05rem}
+  .acc-sum-label{font-size:.64rem}
   .acc-filter-bar{flex-direction:column;gap:8px;padding:12px}
-  .acc-filter-group select{min-width:100%;width:100%}
-
-  /* Currency */
+  .acc-filter-group select{width:100%}
   .currency-cards{grid-template-columns:1fr 1fr;gap:8px}
-  .curr-val{font-size:1rem}
-  .currency-box{padding:14px}
+  .currency-box{padding:12px}
+  .curr-val{font-size:.95rem}
 
   /* Modal bottom sheet */
   .modal-overlay{align-items:flex-end !important;padding:0 !important}
   .modal{
     border-radius:20px 20px 0 0 !important;
-    max-height:93vh !important;
+    max-height:92vh !important;
     width:100% !important;
     max-width:100% !important;
   }
   .modal-wide{max-width:100% !important}
   .form-grid{grid-template-columns:1fr !important}
-  .modal-body{padding:16px !important}
-  .modal-footer{
-    padding:12px 16px !important;
-    padding-bottom:max(12px,env(safe-area-inset-bottom)) !important;
-  }
-  .modal-header{padding:14px 16px !important}
+  .modal-body{padding:14px !important}
+  .modal-footer{padding:10px 14px !important;padding-bottom:max(10px,env(safe-area-inset-bottom)) !important}
+  .modal-header{padding:13px 14px !important}
 
   /* Profile */
-  .profile-card{flex-direction:column;align-items:center;padding:16px;gap:16px}
-  .profile-avatar-circle{width:100px;height:100px}
-  .profile-name-en{font-size:1.2rem}
+  .profile-card{flex-direction:column;align-items:center;padding:14px;gap:14px}
+  .profile-avatar-circle{width:90px;height:90px}
+  .profile-name-en{font-size:1.15rem}
   .profile-static-info{width:100%}
-  .static-info-item{padding:8px 12px}
 
   /* Notif */
   .notif-filters{gap:5px;flex-wrap:wrap}
-  .filter-btn{padding:6px 12px;font-size:.78rem}
-  .notif-item{padding:12px 14px}
+  .filter-btn{padding:6px 11px;font-size:.76rem}
 
   /* Checkboxes */
   .maint-checkboxes{gap:5px}
-  .check-item{font-size:.76rem;padding:5px 9px}
-  .maint-types-section{padding:10px}
+  .check-item{font-size:.74rem;padding:5px 8px}
 
   /* Trip preview */
   .preview-cols{grid-template-columns:1fr}
-  .trip-preview{padding:12px}
-
-  /* Insurance */
   .ins-section-box .form-grid{grid-template-columns:1fr}
-  .ins-section-box{padding:10px}
-
-  /* Hide scrollbar */
-  ::-webkit-scrollbar{width:0;height:0}
-
-  /* Safe area iPhone */
-  .topbar{padding-top:max(0px,env(safe-area-inset-top))}
-  .sidebar{padding-top:env(safe-area-inset-top)}
-  .toast{bottom:max(24px,env(safe-area-inset-bottom))}
 }
 
 @media(max-width:400px){
   .stats-grid{grid-template-columns:1fr 1fr}
   .acc-summary-grid{grid-template-columns:1fr 1fr}
-  .lock-title{font-size:1.4rem}
-  .lock-box{padding:22px 14px 18px}
+  .lock-title{font-size:1.35rem}
+  .lock-box{padding:20px 14px 16px}
 }
