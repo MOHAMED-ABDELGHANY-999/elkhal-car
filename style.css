@@ -434,185 +434,210 @@ input,select,textarea{font-size:16px!important;} /* منع zoom على iOS لم�
    ============================================ */
 
 /* ===== TABLET 900px ===== */
-@media(max-width:900px){
-  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
-  .dashboard-grid{grid-template-columns:1fr}
-  .acc-summary-grid{grid-template-columns:repeat(3,1fr);gap:10px}
-  .profile-card{flex-direction:column;align-items:center;padding:20px;gap:20px}
-  .profile-form{grid-template-columns:1fr}
-  .currency-cards{grid-template-columns:repeat(2,1fr)}
-  .form-grid{grid-template-columns:1fr}
-  .preview-cols{grid-template-columns:1fr}
-  .ins-section-box .form-grid{grid-template-columns:1fr}
-}
+
 
 /* ===== MOBILE 700px ===== */
-@media(max-width:700px){
 
-  /* Sidebar */
-  .sidebar{transform:translateX(100%);width:280px}
-  .sidebar.open{transform:translateX(0);box-shadow:-6px 0 30px rgba(0,0,0,.7)}
-  .main{margin-right:0}
-  .menu-toggle{display:flex}
-
-  /* Topbar */
-  .topbar{padding:0 12px;gap:8px;height:56px}
-  .topbar-title{font-size:.85rem}
-  .topbar-avatar{width:32px;height:32px}
-
-  /* Page */
-  .page-wrapper{padding:10px}
-  .section-header{margin-bottom:12px}
-  .section-header h1{font-size:1.2rem}
-  .section-header .btn-primary{width:100%;text-align:center;padding:10px}
-
-  /* Stats */
-  .stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
-  .stat-card{padding:12px 10px}
-  .stat-num{font-size:1.4rem}
-  .stat-icon{font-size:1.5rem}
-  .stat-label{font-size:.68rem}
-
-  /* Dashboard */
-  .dashboard-grid{grid-template-columns:1fr}
-
-  /* Search */
-  .search-bar input{max-width:100%;width:100%}
-
-  /* ===== TABLES → CARDS على الموبايل ===== */
-  .table-wrapper{
-    background:transparent;
-    border:none;
-    border-radius:0;
-    overflow:visible;
-  }
-  .data-table{display:block;width:100%}
-  .data-table thead{display:none}
-  .data-table tbody{display:flex;flex-direction:column;gap:10px}
-  .data-table tbody tr{
-    display:block;
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:12px 14px;
-    position:relative;
-  }
-  .data-table tbody tr:hover{background:var(--inp)}
-  .data-table td{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:4px 0;
-    border:none;
-    font-size:.82rem;
-    white-space:normal;
-    word-break:break-word;
-    border-bottom:1px solid rgba(255,255,255,.04);
-  }
-  .data-table td:last-child{border-bottom:none}
-
-  /* أول خانة (رقم) تتخبى */
-  .data-table td:first-child{display:none}
-
-  /* ثاني خانة (الاسم/اللوحة) تبقى كبيرة وملونة */
-  .data-table td:nth-child(2){
-    font-size:1rem;
-    font-weight:700;
-    color:var(--blue);
-    padding-bottom:8px;
-    margin-bottom:4px;
-    border-bottom:1px solid var(--border) !important;
-    justify-content:flex-start;
-  }
-
-  /* خانة الإجراءات تبقى زرار واضح */
-  .data-table td:last-child{
-    display:flex;
-    gap:8px;
-    padding-top:8px;
-    margin-top:4px;
-    border-top:1px solid var(--border);
-    justify-content:flex-end;
-  }
-  .data-table td:last-child .btn-icon{
-    flex:1;text-align:center;padding:8px 4px;font-size:.8rem;
-  }
-
-  /* label قبل كل بيانات */
-  .data-table td[data-label]::before{
-    content:attr(data-label);
-    font-size:.72rem;
-    color:var(--muted);
-    font-weight:600;
-    flex-shrink:0;
-    margin-left:8px;
-  }
-
-  /* Accounts summary */
-  .acc-summary-grid{grid-template-columns:repeat(2,1fr);gap:8px}
-  .acc-sum-card{padding:10px 12px}
-  .acc-sum-val{font-size:1.1rem}
-  .acc-sum-label{font-size:.66rem}
-
-  /* Acc filter */
-  .acc-filter-bar{flex-direction:column;gap:8px}
-  .acc-filter-group select{min-width:100%}
-
-  /* Currency */
-  .currency-cards{grid-template-columns:repeat(2,1fr);gap:8px}
-  .curr-val{font-size:1rem}
-
-  /* Modal من تحت كـ bottom sheet */
-  .modal-overlay{align-items:flex-end;padding:0}
-  .modal{
-    border-radius:18px 18px 0 0;
-    max-height:92vh;
-    width:100%;
-    max-width:100%;
-  }
-  .modal-wide{max-width:100%}
-  .form-grid{grid-template-columns:1fr}
-  .modal-footer{
-    padding:12px 16px;
-    padding-bottom:max(12px, env(safe-area-inset-bottom));
-  }
-
-  /* Profile */
-  .profile-card{flex-direction:column;align-items:center;padding:16px;gap:16px}
-  .profile-avatar-circle{width:100px;height:100px}
-  .profile-name-en{font-size:1.3rem}
-  .profile-static-info{width:100%}
-
-  /* Notif */
-  .notif-filters{gap:5px;flex-wrap:wrap}
-  .filter-btn{padding:5px 10px;font-size:.75rem}
-
-  /* Checkboxes */
-  .maint-checkboxes{gap:5px}
-  .check-item{font-size:.75rem;padding:5px 9px}
-
-  /* Trip preview */
-  .preview-cols{grid-template-columns:1fr}
-
-  /* Insurance sections */
-  .ins-section-box .form-grid{grid-template-columns:1fr}
-
-  /* Hide scrollbar on mobile */
-  ::-webkit-scrollbar{width:0;height:0}
-}
 
 /* ===== SMALL MOBILE 400px ===== */
-@media(max-width:400px){
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .acc-summary-grid{grid-template-columns:repeat(2,1fr)}
-  .topbar-title{font-size:.78rem}
-  .lock-title{font-size:1.5rem}
-  .lock-box{padding:24px 16px 20px}
-}
+
 
 /* Safe area iPhone */
 @supports(padding:max(0px)){
   .topbar{padding-top:max(0px,env(safe-area-inset-top))}
   .sidebar{padding-top:env(safe-area-inset-top)}
   .toast{bottom:max(24px,env(safe-area-inset-bottom))}
+}
+
+/* ===== MOBILE - كل حاجة زي التنبيهات ===== */
+@media(max-width:768px){
+
+  /* Sidebar */
+  .sidebar{transform:translateX(100%);width:280px}
+  .sidebar.open{transform:translateX(0);box-shadow:-6px 0 30px rgba(0,0,0,.8)}
+  .main{margin-right:0}
+  .menu-toggle{display:flex}
+
+  /* Topbar */
+  .topbar{padding:0 12px;gap:8px;height:54px}
+  .topbar-title{font-size:.88rem}
+  .topbar-avatar{width:32px;height:32px;font-size:.8rem}
+  .notif-bell{font-size:1.1rem}
+
+  /* Page */
+  .page-wrapper{padding:10px}
+  .section-header{margin-bottom:14px;flex-wrap:wrap;gap:8px}
+  .section-header h1{font-size:1.2rem}
+  .section-header .btn-primary{width:100%;text-align:center;padding:11px}
+
+  /* Stats */
+  .stats-grid{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .stat-card{padding:12px 10px;gap:10px}
+  .stat-num{font-size:1.4rem}
+  .stat-icon{font-size:1.5rem}
+  .stat-label{font-size:.68rem}
+
+  /* Dashboard */
+  .dashboard-grid{grid-template-columns:1fr;gap:12px}
+
+  /* Search */
+  .search-bar input{max-width:100%;width:100%}
+
+  /* ===== TABLES → NOTIFICATION-STYLE CARDS ===== */
+  .table-wrapper{
+    background:transparent !important;
+    border:none !important;
+    border-radius:0 !important;
+    overflow:visible !important;
+  }
+  .data-table{display:block !important;width:100%}
+  .data-table thead{display:none !important}
+  .data-table tbody{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:10px !important;
+  }
+  .data-table tbody tr{
+    display:block !important;
+    background:var(--card) !important;
+    border:1px solid var(--border) !important;
+    border-radius:12px !important;
+    padding:14px 16px !important;
+    border-right:3px solid var(--blue) !important;
+    transition:all .2s !important;
+  }
+  .data-table tbody tr:hover{
+    border-color:var(--border-a) !important;
+    background:var(--inp) !important;
+  }
+  .data-table td{
+    display:flex !important;
+    justify-content:space-between !important;
+    align-items:center !important;
+    padding:5px 0 !important;
+    border:none !important;
+    font-size:.84rem !important;
+    white-space:normal !important;
+    word-break:break-word !important;
+    border-bottom:1px solid rgba(255,255,255,.04) !important;
+  }
+  .data-table td:last-child{border-bottom:none !important}
+
+  /* رقم الصف - اتخبى */
+  .data-table td:first-child{display:none !important}
+
+  /* الاسم الرئيسي - يظهر كبير وملون زي عنوان التنبيه */
+  .data-table td:nth-child(2){
+    font-size:1rem !important;
+    font-weight:700 !important;
+    color:var(--txt) !important;
+    padding-bottom:10px !important;
+    margin-bottom:4px !important;
+    border-bottom:1px solid var(--border) !important;
+    justify-content:flex-start !important;
+    display:block !important;
+  }
+
+  /* data-label يظهر قبل كل بيانة */
+  .data-table td[data-label]{
+    display:flex !important;
+    justify-content:space-between !important;
+  }
+  .data-table td[data-label]::before{
+    content:attr(data-label) !important;
+    font-size:.74rem !important;
+    color:var(--muted) !important;
+    font-weight:600 !important;
+    flex-shrink:0 !important;
+    margin-left:10px !important;
+  }
+
+  /* الإجراءات - زرار واضح في الأسفل */
+  .data-table td:last-child{
+    display:flex !important;
+    gap:8px !important;
+    padding-top:10px !important;
+    margin-top:6px !important;
+    border-top:1px solid var(--border) !important;
+    justify-content:flex-end !important;
+  }
+  .data-table td:last-child .btn-icon{
+    flex:1 !important;
+    text-align:center !important;
+    padding:9px 6px !important;
+    font-size:.82rem !important;
+  }
+
+  /* Accounts summary */
+  .acc-summary-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .acc-sum-card{padding:12px}
+  .acc-sum-val{font-size:1.1rem}
+  .acc-sum-label{font-size:.66rem}
+  .acc-sum-icon{font-size:1.3rem;margin-bottom:4px}
+
+  /* Acc filter */
+  .acc-filter-bar{flex-direction:column;gap:8px;padding:12px}
+  .acc-filter-group select{min-width:100%;width:100%}
+
+  /* Currency */
+  .currency-cards{grid-template-columns:1fr 1fr;gap:8px}
+  .curr-val{font-size:1rem}
+  .currency-box{padding:14px}
+
+  /* Modal bottom sheet */
+  .modal-overlay{align-items:flex-end !important;padding:0 !important}
+  .modal{
+    border-radius:20px 20px 0 0 !important;
+    max-height:93vh !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+  .modal-wide{max-width:100% !important}
+  .form-grid{grid-template-columns:1fr !important}
+  .modal-body{padding:16px !important}
+  .modal-footer{
+    padding:12px 16px !important;
+    padding-bottom:max(12px,env(safe-area-inset-bottom)) !important;
+  }
+  .modal-header{padding:14px 16px !important}
+
+  /* Profile */
+  .profile-card{flex-direction:column;align-items:center;padding:16px;gap:16px}
+  .profile-avatar-circle{width:100px;height:100px}
+  .profile-name-en{font-size:1.2rem}
+  .profile-static-info{width:100%}
+  .static-info-item{padding:8px 12px}
+
+  /* Notif */
+  .notif-filters{gap:5px;flex-wrap:wrap}
+  .filter-btn{padding:6px 12px;font-size:.78rem}
+  .notif-item{padding:12px 14px}
+
+  /* Checkboxes */
+  .maint-checkboxes{gap:5px}
+  .check-item{font-size:.76rem;padding:5px 9px}
+  .maint-types-section{padding:10px}
+
+  /* Trip preview */
+  .preview-cols{grid-template-columns:1fr}
+  .trip-preview{padding:12px}
+
+  /* Insurance */
+  .ins-section-box .form-grid{grid-template-columns:1fr}
+  .ins-section-box{padding:10px}
+
+  /* Hide scrollbar */
+  ::-webkit-scrollbar{width:0;height:0}
+
+  /* Safe area iPhone */
+  .topbar{padding-top:max(0px,env(safe-area-inset-top))}
+  .sidebar{padding-top:env(safe-area-inset-top)}
+  .toast{bottom:max(24px,env(safe-area-inset-bottom))}
+}
+
+@media(max-width:400px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .acc-summary-grid{grid-template-columns:1fr 1fr}
+  .lock-title{font-size:1.4rem}
+  .lock-box{padding:22px 14px 18px}
 }
