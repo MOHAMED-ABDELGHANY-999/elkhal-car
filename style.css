@@ -571,7 +571,8 @@ html,body{overflow-x:hidden;touch-action:pan-y;}
     border-top:1px solid var(--border) !important;
     justify-content:stretch !important;
   }
-  .data-table td:last-child .btn-icon{
+  .data-table td:last-child .btn-icon,
+  .data-table td.actions-cell .btn-icon{
     flex:1 !important;
     text-align:center !important;
     padding:9px 6px !important;
@@ -627,4 +628,34 @@ html,body{overflow-x:hidden;touch-action:pan-y;}
   .acc-summary-grid{grid-template-columns:1fr 1fr}
   .lock-title{font-size:1.35rem}
   .lock-box{padding:20px 14px 16px}
+}
+/* Mobile table-card label fix */
+@media(max-width:768px){
+  .data-table td.row-index-cell{display:none !important}
+  .data-table td.card-title-cell{
+    display:block !important;
+    font-size:1rem !important;
+    font-weight:700 !important;
+    color:var(--txt) !important;
+    padding-bottom:9px !important;
+    margin-bottom:5px !important;
+    border-bottom:1px solid var(--border) !important;
+  }
+  .data-table td.card-title-cell::before,
+  .data-table td.actions-cell::before{display:none !important}
+  .data-table td.actions-cell{
+    display:flex !important;
+    gap:8px !important;
+    padding-top:9px !important;
+    margin-top:5px !important;
+    border-top:1px solid var(--border) !important;
+    justify-content:stretch !important;
+    flex-wrap:wrap !important;
+  }
+  .data-table td.actions-cell .btn-icon{
+    flex:1 !important;
+    text-align:center !important;
+    padding:9px 6px !important;
+    font-size:.82rem !important;
+  }
 }
