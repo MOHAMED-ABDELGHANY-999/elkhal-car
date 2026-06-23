@@ -630,7 +630,16 @@ html,body{overflow-x:hidden;touch-action:pan-y;}
 }
 
 
+/* Mobile table fix */
 @media (max-width:768px){
-.table-wrapper{overflow-x:auto!important;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
-.data-table{min-width:1200px;}
+  .table-wrapper{
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .data-table{
+    width:max-content !important;
+    min-width:1200px !important;
+  }
 }
