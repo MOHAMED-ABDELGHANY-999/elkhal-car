@@ -112,7 +112,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:10
 
 /* Table */
 .table-wrapper{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:auto;-webkit-overflow-scrolling:touch}
-.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table{width:max-content;min-width:1200px;border-collapse:collapse;font-size:.82rem}
 .data-table thead tr{background:var(--card2)}
 .data-table th{padding:11px 12px;text-align:right;font-weight:700;color:var(--txt2);font-size:.74rem;border-bottom:1px solid var(--border);white-space:nowrap}
 .data-table tbody tr{background:var(--card);transition:background .15s;border-bottom:1px solid var(--border)}
@@ -571,8 +571,7 @@ html,body{overflow-x:hidden;touch-action:pan-y;}
     border-top:1px solid var(--border) !important;
     justify-content:stretch !important;
   }
-  .data-table td:last-child .btn-icon,
-  .data-table td.actions-cell .btn-icon{
+  .data-table td:last-child .btn-icon{
     flex:1 !important;
     text-align:center !important;
     padding:9px 6px !important;
@@ -629,33 +628,9 @@ html,body{overflow-x:hidden;touch-action:pan-y;}
   .lock-title{font-size:1.35rem}
   .lock-box{padding:20px 14px 16px}
 }
-/* Mobile table-card label fix */
-@media(max-width:768px){
-  .data-table td.row-index-cell{display:none !important}
-  .data-table td.card-title-cell{
-    display:block !important;
-    font-size:1rem !important;
-    font-weight:700 !important;
-    color:var(--txt) !important;
-    padding-bottom:9px !important;
-    margin-bottom:5px !important;
-    border-bottom:1px solid var(--border) !important;
-  }
-  .data-table td.card-title-cell::before,
-  .data-table td.actions-cell::before{display:none !important}
-  .data-table td.actions-cell{
-    display:flex !important;
-    gap:8px !important;
-    padding-top:9px !important;
-    margin-top:5px !important;
-    border-top:1px solid var(--border) !important;
-    justify-content:stretch !important;
-    flex-wrap:wrap !important;
-  }
-  .data-table td.actions-cell .btn-icon{
-    flex:1 !important;
-    text-align:center !important;
-    padding:9px 6px !important;
-    font-size:.82rem !important;
-  }
+
+
+@media (max-width:768px){
+.table-wrapper{overflow-x:auto!important;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
+.data-table{min-width:1200px;}
 }

@@ -86,7 +86,6 @@ window.addEventListener("DOMContentLoaded",()=>{
   loadFromStorage();
   loadProfile();
   renderAll();
-  initTableMobileLabels();
   loadFromCloud();
   checkAllExpiry();
   requestNotifPermission();
@@ -257,29 +256,7 @@ function dCls(s){return s==="نشط"?"s-active":s==="إجازة"?"s-info":"s-dan
 function mCls(s){return s==="مكتملة"?"s-active":s==="جارية"?"s-info":"s-warning";}
 function rCls(s){return s==="ناجح"?"s-active":s==="راسب"?"s-danger":"s-warning";}
 
-function applyTableMobileLabels(root=document){
-  root.querySelectorAll(".data-table").forEach(table=>{
-    const headers=[...table.querySelectorAll("thead th")].map(th=>th.textContent.trim());
-    table.querySelectorAll("tbody tr").forEach(row=>{
-      if(row.querySelector(".empty-state"))return;
-      [...row.children].forEach((cell,i)=>{
-        if(cell.tagName!=="TD")return;
-        const label=headers[i]||"";
-        if(label&&label!=="#"&&!cell.hasAttribute("data-label"))cell.setAttribute("data-label",label);
-        if(i===0)cell.classList.add("row-index-cell");
-        if(i===1)cell.classList.add("card-title-cell");
-        if(i===headers.length-1)cell.classList.add("actions-cell");
-      });
-    });
-  });
-}
-function initTableMobileLabels(){
-  applyTableMobileLabels();
-  document.querySelectorAll(".data-table tbody").forEach(tb=>{
-    new MutationObserver(()=>applyTableMobileLabels(tb.closest(".data-table")||document)).observe(tb,{childList:true});
-  });
-}
-function renderAll(){renderVehicles();renderDrivers();renderMaintenance();renderInspections();renderLicenses();renderInsurance();updateDashboard();applyTableMobileLabels();}
+function renderAll(){renderVehicles();renderDrivers();renderMaintenance();renderInspections();renderLicenses();renderInsurance();updateDashboard();}
 
 // ===== VEHICLES + TRAILERS =====
 function addVehicle(){
