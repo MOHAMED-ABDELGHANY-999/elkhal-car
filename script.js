@@ -293,15 +293,17 @@ function renderVehicles(){
   tb.innerHTML=STATE.vehicles.map((v,i)=>{
     const tlicSt=v.trailerLicExp?expiryStatus(v.trailerLicExp):{label:"—",cls:""};
     return`<tr>
-      <td>${i+1}</td><td><strong>${v.plate}</strong></td><td>${v.type||"—"}</td>
-      <td>${getDriverName(v.driver)}</td>
-      <td>${v.trailerNum?`<span class="status-badge s-purple">❄️ ${v.trailerNum}</span>`:"—"}</td>
-      <td>${v.trailerType||"—"}</td>
-      <td>${v.trailerLic||"—"}</td>
-      <td>${v.trailerLicExp?`<span class="status-badge ${tlicSt.cls}">${tlicSt.label}</span>`:"—"}</td>
-      <td><span class="status-badge ${vCls(v.status)}">${v.status}</span></td>
-      <td style="display:flex;gap:5px;padding:8px 10px">
-        <button class="btn-icon" onclick="editVehicle('${v.id}')">✏️</button>
+      <td>${i+1}</td>
+      <td><strong>${v.plate}</strong></td>
+      <td data-label="النوع">${v.type||"—"}</td>
+      <td data-label="السائق">${getDriverName(v.driver)}</td>
+      <td data-label="البراد">${v.trailerNum?`<span class="status-badge s-purple">❄️ ${v.trailerNum}</span>`:"—"}</td>
+      <td data-label="نوع البراد">${v.trailerType||"—"}</td>
+      <td data-label="ترخيص البراد">${v.trailerLic||"—"}</td>
+      <td data-label="انتهاء الترخيص">${v.trailerLicExp?`<span class="status-badge ${tlicSt.cls}">${tlicSt.label}</span>`:"—"}</td>
+      <td data-label="الحالة"><span class="status-badge ${vCls(v.status)}">${v.status}</span></td>
+      <td>
+        <button class="btn-icon" onclick="editVehicle('${v.id}')">✏️ تعديل</button>
         <button class="btn-icon danger" onclick="deleteVehicle('${v.id}')">🗑️</button>
       </td></tr>`;
   }).join("");
@@ -335,7 +337,22 @@ function renderDrivers(){
   const tb=document.getElementById("drivers-tbody");
   document.getElementById("stat-drivers").textContent=STATE.drivers.length;
   if(!STATE.drivers.length){tb.innerHTML=`<tr><td colspan="9" class="empty-state">لا يوجد سواقين</td></tr>`;return;}
-  tb.innerHTML=STATE.drivers.map((d,i)=>{const st=expiryStatus(d.licenseExp);return`<tr><td>${i+1}</td><td><strong>${d.name}</strong></td><td>${d.phone}</td><td>${d.license}</td><td>${formatDate(d.licenseExp)}</td><td>${d.nationality||"—"}</td><td><span class="status-badge ${dCls(d.status)}">${d.status}</span></td><td class="notes-cell">${d.notes||"—"}</td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editDriver('${d.id}')">✏️</button><button class="btn-icon danger" onclick="deleteDriver('${d.id}')">🗑️</button></td></tr>`;}).join("");
+  tb.innerHTML=STATE.drivers.map((d,i)=>{
+    const st=expiryStatus(d.licenseExp);
+    return`<tr>
+      <td>${i+1}</td>
+      <td><strong>${d.name}</strong></td>
+      <td data-label="الهاتف">${d.phone}</td>
+      <td data-label="رقم الرخصة">${d.license}</td>
+      <td data-label="انتهاء الرخصة"><span class="status-badge ${st.cls}">${st.label}</span></td>
+      <td data-label="الجنسية">${d.nationality||"—"}</td>
+      <td data-label="الحالة"><span class="status-badge ${dCls(d.status)}">${d.status}</span></td>
+      <td data-label="ملاحظات">${d.notes||"—"}</td>
+      <td>
+        <button class="btn-icon" onclick="editDriver('${d.id}')">✏️ تعديل</button>
+        <button class="btn-icon danger" onclick="deleteDriver('${d.id}')">🗑️</button>
+      </td></tr>`;
+  }).join("");
 }
 
 // ===== ACCOUNTS (TRIPS) =====
@@ -456,7 +473,18 @@ function getEntityName(type,id){
 function renderMaintenance(){
   const tb=document.getElementById("maintenance-tbody");
   if(!STATE.maintenance.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد سجلات صيانة</td></tr>`;return;}
-  tb.innerHTML=STATE.maintenance.map((m,i)=>{const ns=m.nextDate?expiryStatus(m.nextDate):{label:"—",cls:""};return`<tr><td>${i+1}</td><td><span class="status-badge ${m.entityType==="trailer"?"s-purple":"s-info"}">${m.entityType==="trailer"?"❄️ براد":"🚗 عربية"}</span></td><td>${getEntityName(m.entityType,m.entityId)}</td><td style="max-width:160px;white-space:normal;font-size:.74rem">${(m.types||[]).join(" • ")||"—"}</td><td>${formatDate(m.date)}</td><td><span class="status-badge ${ns.cls}">${ns.label}</span></td><td>${m.cost||"—"}</td><td>${m.center||"—"}</td><td><span class="status-badge ${mCls(m.status)}">${m.status}</span></td><td style="padding:8px 10px"><button class="btn-icon danger" onclick="deleteMaintenance('${m.id}')">🗑️</button></td></tr>`;}).join("");
+  tb.innerHTML=STATE.maintenance.map((m,i)=>`<tr>
+    <td>${i+1}</td>
+    <td><strong>${getEntityName(m.entityType,m.entityId)}</strong> <span class="status-badge ${m.entityType==="trailer"?"s-purple":"s-info"}">${m.entityType==="trailer"?"❄️":"🚗"}</span></td>
+    <td data-label="أنواع الصيانة" style="white-space:normal;display:block;padding:4px 0;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.04)">${(m.types||[]).join(" • ")||"—"}</td>
+    <td data-label="التاريخ">${formatDate(m.date)}</td>
+    <td data-label="التكلفة">${m.cost||"—"}</td>
+    <td data-label="المركز">${m.center||"—"}</td>
+    <td data-label="الحالة"><span class="status-badge ${mCls(m.status)}">${m.status}</span></td>
+    <td>
+      <button class="btn-icon" onclick="editMaintenance('${m.id}')">✏️ تعديل</button>
+      <button class="btn-icon danger" onclick="deleteMaintenance('${m.id}')">🗑️</button>
+    </td></tr>`).join("");
 }
 
 // ===== INSPECTIONS =====
