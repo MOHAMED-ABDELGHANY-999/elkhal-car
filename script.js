@@ -1,4 +1,20 @@
 "use strict";
+
+// ===== MOBILE CARD RENDERER =====
+function isMobile(){return window.innerWidth <= 768;}
+
+function makeCard(fields, actions, borderColor){
+  // fields = [{label, value, isTitle}]
+  // actions = html string
+  const title = fields.find(f=>f.isTitle);
+  const rest = fields.filter(f=>!f.isTitle);
+  const color = borderColor || 'var(--blue)';
+  return `<div style="background:var(--card);border:1px solid var(--border);border-right:3px solid ${color};border-radius:12px;padding:13px 15px;margin-bottom:10px;">
+    <div style="font-size:1rem;font-weight:700;color:var(--txt);padding-bottom:9px;margin-bottom:8px;border-bottom:1px solid var(--border)">${title?title.value:''}</div>
+    ${rest.map(f=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.83rem;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:var(--muted);font-size:.72rem;font-weight:600">${f.label}</span><span>${f.value}</span></div>`).join('')}
+    <div style="display:flex;gap:8px;padding-top:9px;margin-top:6px;border-top:1px solid var(--border)">${actions}</div>
+  </div>`;
+}
 const STATE={vehicles:[],drivers:[],trips:[],maintenance:[],inspections:[],licenses:[],insurance:[],notifications:[]};
 const PASS="hamo2006";
 
@@ -81,6 +97,10 @@ async function loadFromCloud(){
 
 const TITLES={dashboard:"لوحة التحكم",profile:"الملف الشخصي",vehicles:"العربيات والبراد",drivers:"السواقين",accounts:"الحسابات",maintenance:"الصيانة",inspection:"الفحص الدوري",license:"الترخيص",insurance:"التأمين",notifications:"التنبيهات"};
 
+window.addEventListener("resize",()=>{
+  clearTimeout(window._resizeTimer);
+  window._resizeTimer=setTimeout(()=>renderAll(),200);
+});
 window.addEventListener("DOMContentLoaded",()=>{
   initLock();
   loadFromStorage();
@@ -286,28 +306,34 @@ function deleteVehicle(id){
   saveToStorage();renderVehicles();updateDashboard();showToast("🗑️ تم الحذف","error");
 }
 function renderVehicles(){
-  const tb=document.getElementById("vehicles-tbody");
   document.getElementById("stat-vehicles").textContent=STATE.vehicles.length;
   document.getElementById("stat-trailers").textContent=STATE.vehicles.filter(v=>v.trailerNum).length;
-  if(!STATE.vehicles.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد عربيات مضافة</td></tr>`;return;}
-  tb.innerHTML=STATE.vehicles.map((v,i)=>{
-    const tlicSt=v.trailerLicExp?expiryStatus(v.trailerLicExp):{label:"—",cls:""};
-    return`<tr>
-      <td>${i+1}</td>
-      <td><strong>${v.plate}</strong></td>
-      <td data-label="النوع">${v.type||"—"}</td>
-      <td data-label="السائق">${getDriverName(v.driver)}</td>
-      <td data-label="البراد">${v.trailerNum?`<span class="status-badge s-purple">❄️ ${v.trailerNum}</span>`:"—"}</td>
-      <td data-label="نوع البراد">${v.trailerType||"—"}</td>
-      <td data-label="ترخيص البراد">${v.trailerLic||"—"}</td>
-      <td data-label="انتهاء الترخيص">${v.trailerLicExp?`<span class="status-badge ${tlicSt.cls}">${tlicSt.label}</span>`:"—"}</td>
-      <td data-label="الحالة"><span class="status-badge ${vCls(v.status)}">${v.status}</span></td>
-      <td>
-        <button class="btn-icon" onclick="editVehicle('${v.id}')">✏️ تعديل</button>
-        <button class="btn-icon danger" onclick="deleteVehicle('${v.id}')">🗑️</button>
-      </td></tr>`;
-  }).join("");
+  if(isMobile()){
+    const container=document.getElementById("vehicles-tbody").closest(".table-wrapper");
+    if(!STATE.vehicles.length){container.innerHTML=`<div class="empty-state">لا توجد عربيات</div>`;return;}
+    container.innerHTML=STATE.vehicles.map(v=>{
+      const tlicSt=v.trailerLicExp?expiryStatus(v.trailerLicExp):{label:"—",cls:""};
+      const actions=`<button class="btn-icon" style="flex:1;text-align:center;padding:9px" onclick="editVehicle('${v.id}')">✏️ تعديل</button><button class="btn-icon danger" style="flex:1;text-align:center;padding:9px" onclick="deleteVehicle('${v.id}')">🗑️ حذف</button>`;
+      return makeCard([
+        {label:'',value:`<strong>${v.plate}</strong> <span class="status-badge ${vCls(v.status)}">${v.status}</span>`,isTitle:true},
+        {label:'🚗 النوع',value:v.type||'—'},
+        {label:'👨‍✈️ السائق',value:getDriverName(v.driver)},
+        {label:'❄️ رقم البراد',value:v.trailerNum?`<span class="status-badge s-purple">❄️ ${v.trailerNum}</span>`:'—'},
+        {label:'❄️ نوع البراد',value:v.trailerType||'—'},
+        {label:'📋 ترخيص البراد',value:v.trailerLic||'—'},
+        {label:'📅 انتهاء الترخيص',value:v.trailerLicExp?`<span class="status-badge ${tlicSt.cls}">${tlicSt.label}</span>`:'—'},
+      ], actions);
+    }).join('');
+  } else {
+    const tb=document.getElementById("vehicles-tbody");
+    if(!STATE.vehicles.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد عربيات مضافة</td></tr>`;return;}
+    tb.innerHTML=STATE.vehicles.map((v,i)=>{
+      const tlicSt=v.trailerLicExp?expiryStatus(v.trailerLicExp):{label:"—",cls:""};
+      return`<tr><td>${i+1}</td><td><strong>${v.plate}</strong></td><td>${v.type||'—'}</td><td>${getDriverName(v.driver)}</td><td>${v.trailerNum?`<span class="status-badge s-purple">❄️ ${v.trailerNum}</span>`:'—'}</td><td>${v.trailerType||'—'}</td><td>${v.trailerLic||'—'}</td><td>${v.trailerLicExp?`<span class="status-badge ${tlicSt.cls}">${tlicSt.label}</span>`:'—'}</td><td><span class="status-badge ${vCls(v.status)}">${v.status}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editVehicle('${v.id}')">✏️</button><button class="btn-icon danger" onclick="deleteVehicle('${v.id}')">🗑️</button></td></tr>`;
+    }).join('');
+  }
 }
+
 
 // ===== DRIVERS =====
 function addDriver(){
@@ -334,25 +360,30 @@ function deleteDriver(id){
   saveToStorage();renderDrivers();updateDashboard();showToast("🗑️ تم الحذف","error");
 }
 function renderDrivers(){
-  const tb=document.getElementById("drivers-tbody");
   document.getElementById("stat-drivers").textContent=STATE.drivers.length;
-  if(!STATE.drivers.length){tb.innerHTML=`<tr><td colspan="9" class="empty-state">لا يوجد سواقين</td></tr>`;return;}
-  tb.innerHTML=STATE.drivers.map((d,i)=>{
-    const st=expiryStatus(d.licenseExp);
-    return`<tr>
-      <td>${i+1}</td>
-      <td><strong>${d.name}</strong></td>
-      <td data-label="الهاتف">${d.phone}</td>
-      <td data-label="رقم الرخصة">${d.license}</td>
-      <td data-label="انتهاء الرخصة"><span class="status-badge ${st.cls}">${st.label}</span></td>
-      <td data-label="الجنسية">${d.nationality||"—"}</td>
-      <td data-label="الحالة"><span class="status-badge ${dCls(d.status)}">${d.status}</span></td>
-      <td data-label="ملاحظات">${d.notes||"—"}</td>
-      <td>
-        <button class="btn-icon" onclick="editDriver('${d.id}')">✏️ تعديل</button>
-        <button class="btn-icon danger" onclick="deleteDriver('${d.id}')">🗑️</button>
-      </td></tr>`;
-  }).join("");
+  if(isMobile()){
+    const container=document.getElementById("drivers-tbody").closest(".table-wrapper");
+    if(!STATE.drivers.length){container.innerHTML=`<div class="empty-state">لا يوجد سواقين</div>`;return;}
+    container.innerHTML=STATE.drivers.map(d=>{
+      const st=expiryStatus(d.licenseExp);
+      const actions=`<button class="btn-icon" style="flex:1;text-align:center;padding:9px" onclick="editDriver('${d.id}')">✏️ تعديل</button><button class="btn-icon danger" style="flex:1;text-align:center;padding:9px" onclick="deleteDriver('${d.id}')">🗑️ حذف</button>`;
+      return makeCard([
+        {label:'',value:`<strong>${d.name}</strong> <span class="status-badge ${dCls(d.status)}">${d.status}</span>`,isTitle:true},
+        {label:'📞 الهاتف',value:d.phone},
+        {label:'🪪 رقم الرخصة',value:d.license},
+        {label:'📅 انتهاء الرخصة',value:`<span class="status-badge ${st.cls}">${st.label}</span>`},
+        {label:'🌍 الجنسية',value:d.nationality||'—'},
+        {label:'📝 ملاحظات',value:d.notes||'—'},
+      ], actions, dCls(d.status)==='s-danger'?'var(--red)':dCls(d.status)==='s-warning'?'var(--orange)':'var(--green)');
+    }).join('');
+  } else {
+    const tb=document.getElementById("drivers-tbody");
+    if(!STATE.drivers.length){tb.innerHTML=`<tr><td colspan="9" class="empty-state">لا يوجد سواقين</td></tr>`;return;}
+    tb.innerHTML=STATE.drivers.map((d,i)=>{
+      const st=expiryStatus(d.licenseExp);
+      return`<tr><td>${i+1}</td><td><strong>${d.name}</strong></td><td>${d.phone}</td><td>${d.license}</td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td>${d.nationality||'—'}</td><td><span class="status-badge ${dCls(d.status)}">${d.status}</span></td><td>${d.notes||'—'}</td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editDriver('${d.id}')">✏️</button><button class="btn-icon danger" onclick="deleteDriver('${d.id}')">🗑️</button></td></tr>`;
+    }).join('');
+  }
 }
 
 // ===== ACCOUNTS (TRIPS) =====
@@ -472,19 +503,34 @@ function getEntityName(type,id){
 }
 function renderMaintenance(){
   const tb=document.getElementById("maintenance-tbody");
-  if(!STATE.maintenance.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد سجلات صيانة</td></tr>`;return;}
-  tb.innerHTML=STATE.maintenance.map((m,i)=>`<tr>
-    <td>${i+1}</td>
-    <td><strong>${getEntityName(m.entityType,m.entityId)}</strong> <span class="status-badge ${m.entityType==="trailer"?"s-purple":"s-info"}">${m.entityType==="trailer"?"❄️":"🚗"}</span></td>
-    <td data-label="أنواع الصيانة" style="white-space:normal;display:block;padding:4px 0;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.04)">${(m.types||[]).join(" • ")||"—"}</td>
-    <td data-label="التاريخ">${formatDate(m.date)}</td>
-    <td data-label="التكلفة">${m.cost||"—"}</td>
-    <td data-label="المركز">${m.center||"—"}</td>
-    <td data-label="الحالة"><span class="status-badge ${mCls(m.status)}">${m.status}</span></td>
-    <td>
-      <button class="btn-icon" onclick="editMaintenance('${m.id}')">✏️ تعديل</button>
-      <button class="btn-icon danger" onclick="deleteMaintenance('${m.id}')">🗑️</button>
-    </td></tr>`).join("");
+  if(isMobile()){
+    const container=tb.closest(".table-wrapper");
+    if(!STATE.maintenance.length){container.innerHTML=`<div class="empty-state">لا توجد سجلات صيانة</div>`;return;}
+    container.innerHTML=STATE.maintenance.map(m=>{
+      const actions=`<button class="btn-icon" style="flex:1;text-align:center;padding:9px" onclick="editMaintenance('${m.id}')">✏️ تعديل</button><button class="btn-icon danger" style="flex:1;text-align:center;padding:9px" onclick="deleteMaintenance('${m.id}')">🗑️ حذف</button>`;
+      const color=m.entityType==="trailer"?"var(--purple)":"var(--blue)";
+      return makeCard([
+        {label:'',value:`<strong>${getEntityName(m.entityType,m.entityId)}</strong> <span class="status-badge ${m.entityType==='trailer'?'s-purple':'s-info'}">${m.entityType==='trailer'?'❄️':'🚗'}</span>`,isTitle:true},
+        {label:'🔧 أنواع الصيانة',value:`<span style="white-space:normal;font-size:.78rem">${(m.types||[]).join(' • ')||'—'}</span>`},
+        {label:'📅 التاريخ',value:formatDate(m.date)},
+        {label:'💰 التكلفة',value:m.cost||'—'},
+        {label:'🏭 المركز',value:m.center||'—'},
+        {label:'⚡ الحالة',value:`<span class="status-badge ${mCls(m.status)}">${m.status}</span>`},
+      ], actions, color);
+    }).join('');
+  } else {
+    if(!STATE.maintenance.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد سجلات صيانة</td></tr>`;return;}
+    tb.innerHTML=STATE.maintenance.map((m,i)=>`<tr>
+      <td>${i+1}</td>
+      <td><strong>${getEntityName(m.entityType,m.entityId)}</strong> <span class="status-badge ${m.entityType==="trailer"?"s-purple":"s-info"}">${m.entityType==="trailer"?"❄️":"🚗"}</span></td>
+      <td style="max-width:200px;white-space:normal;font-size:.76rem">${(m.types||[]).join(" • ")||"—"}</td>
+      <td>${formatDate(m.date)}</td><td>${m.cost||"—"}</td><td>${m.center||"—"}</td>
+      <td><span class="status-badge ${mCls(m.status)}">${m.status}</span></td>
+      <td style="display:flex;gap:5px;padding:8px 10px">
+        <button class="btn-icon" onclick="editMaintenance('${m.id}')">✏️</button>
+        <button class="btn-icon danger" onclick="deleteMaintenance('${m.id}')">🗑️</button>
+      </td></tr>`).join("");
+  }
 }
 
 // ===== INSPECTIONS =====
@@ -510,17 +556,26 @@ function deleteInspection(id){
 }
 function renderInspections(){
   const tb=document.getElementById("inspection-tbody");
-  if(!STATE.inspections.length){tb.innerHTML=`<tr><td colspan="8" class="empty-state">لا توجد سجلات فحص</td></tr>`;return;}
-  tb.innerHTML=STATE.inspections.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr>
-    <td>${i+1}</td>
-    <td><strong>${getVehicleName(r.vehicle)}</strong></td>
-    <td data-label="تاريخ الفحص">${formatDate(r.date)}</td>
-    <td data-label="تاريخ الانتهاء">${formatDate(r.exp)}</td>
-    <td data-label="الدولة">${r.country}</td>
-    <td data-label="النتيجة"><span class="status-badge ${rCls(r.result)}">${r.result}</span></td>
-    <td data-label="الحالة"><span class="status-badge ${st.cls}">${st.label}</span></td>
-    <td><button class="btn-icon" onclick="editInspection('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteInspection('${r.id}')">🗑️</button></td>
-  </tr>`;}).join("");
+  if(isMobile()){
+    const container=tb.closest(".table-wrapper");
+    if(!STATE.inspections.length){container.innerHTML=`<div class="empty-state">لا توجد سجلات فحص</div>`;return;}
+    container.innerHTML=STATE.inspections.map(r=>{
+      const st=expiryStatus(r.exp);
+      const color=st.cls==='s-danger'?'var(--red)':st.cls==='s-warning'?'var(--orange)':'var(--green)';
+      const actions=`<button class="btn-icon" style="flex:1;text-align:center;padding:9px" onclick="editInspection('${r.id}')">✏️ تعديل</button><button class="btn-icon danger" style="flex:1;text-align:center;padding:9px" onclick="deleteInspection('${r.id}')">🗑️</button>`;
+      return makeCard([
+        {label:'',value:`<strong>${getVehicleName(r.vehicle)}</strong>`,isTitle:true},
+        {label:'📅 تاريخ الفحص',value:formatDate(r.date)},
+        {label:'⏰ تاريخ الانتهاء',value:formatDate(r.exp)},
+        {label:'🌍 الدولة',value:r.country},
+        {label:'✅ النتيجة',value:`<span class="status-badge ${rCls(r.result)}">${r.result}</span>`},
+        {label:'⚡ الحالة',value:`<span class="status-badge ${st.cls}">${st.label}</span>`},
+      ], actions, color);
+    }).join('');
+  } else {
+    if(!STATE.inspections.length){tb.innerHTML=`<tr><td colspan="8" class="empty-state">لا توجد سجلات فحص</td></tr>`;return;}
+    tb.innerHTML=STATE.inspections.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr><td>${i+1}</td><td>${getVehicleName(r.vehicle)}</td><td>${formatDate(r.date)}</td><td>${formatDate(r.exp)}</td><td>${r.country}</td><td><span class="status-badge ${rCls(r.result)}">${r.result}</span></td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editInspection('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteInspection('${r.id}')">🗑️</button></td></tr>`;}).join("");
+  }
 }
 
 // ===== LICENSES =====
@@ -549,18 +604,27 @@ function deleteLicense(id){
 }
 function renderLicenses(){
   const tb=document.getElementById("license-tbody");
-  if(!STATE.licenses.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد تراخيص</td></tr>`;return;}
-  tb.innerHTML=STATE.licenses.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr>
-    <td>${i+1}</td>
-    <td><strong>${getEntityName(r.entityType,r.entityId)} <span class="status-badge ${r.entityType==="trailer"?"s-purple":"s-info"}">${r.entityType==="trailer"?"❄️":"🚗"}</span></strong></td>
-    <td data-label="رقم الترخيص">${r.num}</td>
-    <td data-label="تاريخ الإصدار">${formatDate(r.issue)}</td>
-    <td data-label="تاريخ الانتهاء">${formatDate(r.exp)}</td>
-    <td data-label="الدولة">${r.country}</td>
-    <td data-label="الجهة">${r.authority||"—"}</td>
-    <td data-label="الحالة"><span class="status-badge ${st.cls}">${st.label}</span></td>
-    <td><button class="btn-icon" onclick="editLicense('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteLicense('${r.id}')">🗑️</button></td>
-  </tr>`;}).join("");
+  if(isMobile()){
+    const container=tb.closest(".table-wrapper");
+    if(!STATE.licenses.length){container.innerHTML=`<div class="empty-state">لا توجد تراخيص</div>`;return;}
+    container.innerHTML=STATE.licenses.map(r=>{
+      const st=expiryStatus(r.exp);
+      const color=st.cls==='s-danger'?'var(--red)':st.cls==='s-warning'?'var(--orange)':'var(--green)';
+      const actions=`<button class="btn-icon" style="flex:1;text-align:center;padding:9px" onclick="editLicense('${r.id}')">✏️ تعديل</button><button class="btn-icon danger" style="flex:1;text-align:center;padding:9px" onclick="deleteLicense('${r.id}')">🗑️</button>`;
+      return makeCard([
+        {label:'',value:`<strong>${getEntityName(r.entityType,r.entityId)}</strong> <span class="status-badge ${r.entityType==='trailer'?'s-purple':'s-info'}">${r.entityType==='trailer'?'❄️':'🚗'}</span>`,isTitle:true},
+        {label:'🔢 رقم الترخيص',value:r.num||'—'},
+        {label:'📅 تاريخ الإصدار',value:formatDate(r.issue)},
+        {label:'⏰ تاريخ الانتهاء',value:formatDate(r.exp)},
+        {label:'🌍 الدولة',value:r.country},
+        {label:'🏛️ الجهة',value:r.authority||'—'},
+        {label:'⚡ الحالة',value:`<span class="status-badge ${st.cls}">${st.label}</span>`},
+      ], actions, color);
+    }).join('');
+  } else {
+    if(!STATE.licenses.length){tb.innerHTML=`<tr><td colspan="10" class="empty-state">لا توجد تراخيص</td></tr>`;return;}
+    tb.innerHTML=STATE.licenses.map((r,i)=>{const st=expiryStatus(r.exp);return`<tr><td>${i+1}</td><td><span class="status-badge ${r.entityType==="trailer"?"s-purple":"s-info"}">${r.entityType==="trailer"?"❄️ براد":"🚗 عربية"}</span></td><td>${getEntityName(r.entityType,r.entityId)}</td><td>${r.num}</td><td>${formatDate(r.issue)}</td><td>${formatDate(r.exp)}</td><td>${r.country}</td><td>${r.authority||"—"}</td><td><span class="status-badge ${st.cls}">${st.label}</span></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editLicense('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteLicense('${r.id}')">🗑️</button></td></tr>`;}).join("");
+  }
 }
 
 // ===== INSURANCE =====
@@ -603,41 +667,36 @@ function deleteInsurance(id){
 }
 function renderInsurance(){
   const tb=document.getElementById("insurance-tbody");
-  if(!STATE.insurance.length){tb.innerHTML=`<tr><td colspan="12" class="empty-state">لا توجد وثائق تأمين</td></tr>`;return;}
-  tb.innerHTML=STATE.insurance.map((r,i)=>{
-    const stJO=r.expJO?expiryStatus(r.expJO):{label:"—",cls:""};
-    const stSA=r.expSA?expiryStatus(r.expSA):{label:"—",cls:""};
-    return`<tr>
-      <td>${i+1}</td><td>${getVehicleName(r.vehicle)}</td>
-      <td>${r.company}</td><td>${r.type}</td>
-      <td style="font-size:.72rem;max-width:100px;white-space:normal">${(r.countries||[]).join(" • ")||"—"}</td>
-      <td>
-        <div style="font-size:.74rem">
-          <div>🇯🇴 ${formatDate(r.startJO)} ← ${formatDate(r.expJO)}</div>
-          <div style="margin-top:3px"><span class="status-badge ${stJO.cls}">${stJO.label}</span></div>
-          ${r.priceJO?`<div style="color:var(--gold);font-weight:700;margin-top:2px">${r.priceJO} د.أ</div>`:""}
-        </div>
-      </td>
-      <td>
-        <div style="font-size:.74rem">
-          <div>🇸🇦 ${formatDate(r.startSA)} ← ${formatDate(r.expSA)}</div>
-          <div style="margin-top:3px"><span class="status-badge ${stSA.cls}">${stSA.label}</span></div>
-          ${r.priceSA?`<div style="color:var(--gold);font-weight:700;margin-top:2px">${r.priceSA} ر.س</div>`:""}
-        </div>
-      </td>
-      <td>
-        <div style="font-size:.74rem">
-          ${r.tirNum?`<div style="font-weight:700;color:var(--blue)">📄 ${r.tirNum}</div>`:"—"}
-          ${r.tirExp?`<div style="margin-top:2px">${formatDate(r.tirIssue)} ← ${formatDate(r.tirExp)}</div>`:""}
-          ${r.tirExp?`<div style="margin-top:2px"><span class="status-badge ${expiryStatus(r.tirExp).cls}">${expiryStatus(r.tirExp).label}</span></div>`:""}
-          ${r.tirSheets?`<div style="color:var(--orange);margin-top:2px">🗂️ ${r.tirSheets} ورقة متبقية</div>`:""}
-        </div>
-      </td>
-      <td style="display:flex;gap:5px;padding:8px 10px">
-        <button class="btn-icon" onclick="editInsurance('${r.id}')">✏️</button>
-        <button class="btn-icon danger" onclick="deleteInsurance('${r.id}')">🗑️</button>
-      </td></tr>`;
-  }).join("");
+  if(isMobile()){
+    const container=tb.closest(".table-wrapper");
+    if(!STATE.insurance.length){container.innerHTML=`<div class="empty-state">لا توجد وثائق تأمين</div>`;return;}
+    container.innerHTML=STATE.insurance.map(r=>{
+      const stJO=r.expJO?expiryStatus(r.expJO):{label:"—",cls:""};
+      const stSA=r.expSA?expiryStatus(r.expSA):{label:"—",cls:""};
+      const stTIR=r.tirExp?expiryStatus(r.tirExp):{label:"—",cls:""};
+      const worst=[stJO,stSA,stTIR].find(s=>s.cls==='s-danger')||[stJO,stSA,stTIR].find(s=>s.cls==='s-warning')||stJO;
+      const color=worst.cls==='s-danger'?'var(--red)':worst.cls==='s-warning'?'var(--orange)':'var(--green)';
+      const actions=`<button class="btn-icon" style="flex:1;text-align:center;padding:9px" onclick="editInsurance('${r.id}')">✏️ تعديل</button><button class="btn-icon danger" style="flex:1;text-align:center;padding:9px" onclick="deleteInsurance('${r.id}')">🗑️</button>`;
+      return makeCard([
+        {label:'',value:`<strong>${getVehicleName(r.vehicle)}</strong> — ${r.company}`,isTitle:true},
+        {label:'🛡️ النوع',value:r.type},
+        {label:'🌍 الدول',value:(r.countries||[]).join(' • ')||'—'},
+        {label:'🇯🇴 أردني انتهاء',value:r.expJO?`${formatDate(r.expJO)} <span class="status-badge ${stJO.cls}">${stJO.label}</span>`:'—'},
+        {label:'🇯🇴 سعر أردني',value:r.priceJO?r.priceJO+' د.أ':'—'},
+        {label:'🇸🇦 سعودي انتهاء',value:r.expSA?`${formatDate(r.expSA)} <span class="status-badge ${stSA.cls}">${stSA.label}</span>`:'—'},
+        {label:'🇸🇦 سعر سعودي',value:r.priceSA?r.priceSA+' ر.س':'—'},
+        {label:'🌍 TIR انتهاء',value:r.tirExp?`${formatDate(r.tirExp)} <span class="status-badge ${stTIR.cls}">${stTIR.label}</span>`:'—'},
+        {label:'📄 رقم TIR',value:r.tirNum||'—'},
+      ], actions, color);
+    }).join('');
+  } else {
+    if(!STATE.insurance.length){tb.innerHTML=`<tr><td colspan="12" class="empty-state">لا توجد وثائق تأمين</td></tr>`;return;}
+    tb.innerHTML=STATE.insurance.map((r,i)=>{
+      const stJO=r.expJO?expiryStatus(r.expJO):{label:"—",cls:""};
+      const stSA=r.expSA?expiryStatus(r.expSA):{label:"—",cls:""};
+      return`<tr><td>${i+1}</td><td>${getVehicleName(r.vehicle)}</td><td>${r.company}</td><td>${r.type}</td><td style="font-size:.76rem">${(r.countries||[]).join(' • ')||'—'}</td><td><div style="font-size:.76rem">${formatDate(r.startJO)}←${formatDate(r.expJO)}<br><span class="status-badge ${stJO.cls}">${stJO.label}</span>${r.priceJO?`<br>${r.priceJO} د.أ`:''}</div></td><td><div style="font-size:.76rem">${formatDate(r.startSA)}←${formatDate(r.expSA)}<br><span class="status-badge ${stSA.cls}">${stSA.label}</span>${r.priceSA?`<br>${r.priceSA} ر.س`:''}</div></td><td><div style="font-size:.76rem">${r.tirNum?`📄 ${r.tirNum}<br>`:''}${r.tirExp?`${formatDate(r.tirExp)}<br><span class="status-badge ${expiryStatus(r.tirExp).cls}">${expiryStatus(r.tirExp).label}</span>`:''}</div></td><td style="display:flex;gap:5px;padding:8px 10px"><button class="btn-icon" onclick="editInsurance('${r.id}')">✏️</button><button class="btn-icon danger" onclick="deleteInsurance('${r.id}')">🗑️</button></td></tr>`;
+    }).join("");
+  }
 }
 
 // ===== EXPIRY CHECK =====
